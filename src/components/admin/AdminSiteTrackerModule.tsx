@@ -339,8 +339,15 @@ export function AdminSiteTrackerModule({
     }
     if (wrapped instanceof Error) {
       try {
-        const parsed = JSON.parse(wrapped.message) as { error?: string };
-        if (parsed.error) return `Firestore error: ${parsed.error}`;
+        const parsed = JSON.parse(wrapped.message) as {
+          error?: string;
+          operationType?: string;
+          path?: string;
+          authInfo?: { email?: string | null; emailVerified?: boolean | null };
+        };
+        if (parsed.error) {
+          return `Firestore error: ${parsed.error} (email: ${parsed.authInfo?.email || 'none'}, verified: ${String(parsed.authInfo?.emailVerified)}, op: ${parsed.operationType || 'write'}, path: ${parsed.path || 'site_trackers'})`;
+        }
       } catch {
         return wrapped.message || fallback;
       }
@@ -361,7 +368,7 @@ export function AdminSiteTrackerModule({
     const id = editingRecord?.id || `site_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
     const payload = {
       id,
-      srNo: Math.max(1, Number(form.srNo) || nextSrNo),
+      srNo: Math.min(1000000, Math.max(1, Number(form.srNo) || nextSrNo)),
       regSession: form.regSession.trim().slice(0, 40),
       regMonth: form.regMonth.trim().slice(0, 30),
       regDate: form.regDate.trim().slice(0, 40),
@@ -400,6 +407,10 @@ export function AdminSiteTrackerModule({
     };
 
     try {
+      if (auth.currentUser) {
+        await auth.currentUser.reload().catch(() => {});
+        await auth.currentUser.getIdToken(true).catch(() => {});
+      }
       if (editingRecord) {
         await updateDoc(doc(db, 'site_trackers', id), {
           ...payload,
@@ -439,6 +450,9 @@ export function AdminSiteTrackerModule({
     setInlineBusyId(rec.id);
     setErrorMsg(null);
     try {
+      if (auth.currentUser) {
+        await auth.currentUser.getIdToken(true).catch(() => {});
+      }
       await updateDoc(doc(db, 'site_trackers', rec.id), {
         ...patch,
         updatedAt: serverTimestamp(),
@@ -465,6 +479,9 @@ export function AdminSiteTrackerModule({
   const handleDelete = async () => {
     if (!deleteTarget) return;
     try {
+      if (auth.currentUser) {
+        await auth.currentUser.getIdToken(true).catch(() => {});
+      }
       await deleteDoc(doc(db, 'site_trackers', deleteTarget.id));
       await onLog('DELETE_SITE_TRACKER', 'site_trackers', deleteTarget.id, `SR#${deleteTarget.srNo} ${deleteTarget.customerName}`);
       setDeleteTarget(null);
