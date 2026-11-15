@@ -1,6 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import {
   User,
+  createUserWithEmailAndPassword,
   onAuthStateChanged,
   sendEmailVerification,
   signInWithEmailAndPassword,
@@ -348,11 +349,16 @@ export function SiteDataProvider({ children }: { children: React.ReactNode }) {
 
     // Attempt Firebase Email/Password authentication (works on both Express and Netlify)
     let firebaseUser: User | null = null;
+    let firebaseErrCode = '';
     try {
       const cred = await signInWithEmailAndPassword(auth, email, password);
       firebaseUser = cred.user;
-    } catch {
+    } catch (err) {
       firebaseUser = null;
+      firebaseErrCode =
+        typeof err === 'object' && err !== null && 'code' in err
+          ? String((err as { code?: string }).code || '')
+          : '';
     }
 
     if (!handledByExpress) {
@@ -362,6 +368,20 @@ export function SiteDataProvider({ children }: { children: React.ReactNode }) {
         throw new Error('Invalid password. Please check your credentials and try again.');
       }
       sessionStorage.setItem(ADMIN_SESSION_STORAGE_KEY, `${STATIC_SESSION_PREFIX}${ADMIN_EMAIL}`);
+    }
+
+    // If credentials are verified and Email/Password provider is enabled but user doesn't exist yet, auto-create
+    if (
+      !firebaseUser &&
+      (firebaseErrCode === 'auth/user-not-found' || firebaseErrCode === 'auth/invalid-credential')
+    ) {
+      try {
+        const created = await createUserWithEmailAndPassword(auth, email, password);
+        firebaseUser = created.user;
+        await sendEmailVerification(created.user).catch(() => {});
+      } catch {
+        // Ignore if Email/Password provider is still disabled in Firebase Console
+      }
     }
 
     setAdminEmail(ADMIN_EMAIL);
