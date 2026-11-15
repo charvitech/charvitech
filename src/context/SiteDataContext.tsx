@@ -47,6 +47,7 @@ import {
 } from '../types/solar';
 
 const ADMIN_SESSION_STORAGE_KEY = 'charvi_admin_session_token';
+const VERIFICATION_SENT_AT_KEY = 'charvi_verification_sent_at';
 const STATIC_SESSION_PREFIX = 'static_adm:';
 const STATIC_PW_SALT = 'charvi_solar_2026';
 const STATIC_PW_SHA256 = 'ad7a8d501c2c0200372d02aded2bfda6205aa39ec33925746509d203a1f7a52d';
@@ -81,6 +82,7 @@ interface SiteDataContextValue {
   verifyAdminEmail: (email: string) => Promise<string>;
   signInAdminWithCredentials: (email: string, password: string) => Promise<void>;
   sendAdminVerificationEmail: () => Promise<void>;
+  reloadAdminVerificationStatus: () => Promise<boolean>;
   getAdminAuthToken: () => Promise<string | null>;
   signOutAdmin: () => Promise<void>;
   refreshPublicData: () => Promise<void>;
@@ -181,6 +183,12 @@ export function SiteDataProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (u) => {
+      if (u && !u.emailVerified) {
+        await u.reload().catch(() => {});
+        if (u.emailVerified) {
+          await u.getIdToken(true).catch(() => {});
+        }
+      }
       setUser(u);
       await restoreAuthState(u);
       setAuthReady(true);
@@ -378,9 +386,13 @@ export function SiteDataProvider({ children }: { children: React.ReactNode }) {
       try {
         const created = await createUserWithEmailAndPassword(auth, email, password);
         firebaseUser = created.user;
-        await sendEmailVerification(created.user).catch(() => {});
+        const lastSent = Number(sessionStorage.getItem(VERIFICATION_SENT_AT_KEY) || '0');
+        if (Date.now() - lastSent > 60_000) {
+          await sendEmailVerification(created.user);
+          sessionStorage.setItem(VERIFICATION_SENT_AT_KEY, String(Date.now()));
+        }
       } catch {
-        // Ignore if Email/Password provider is still disabled in Firebase Console
+        // Ignore if Email/Password provider is disabled or rate-limited
       }
     }
 
@@ -399,8 +411,51 @@ export function SiteDataProvider({ children }: { children: React.ReactNode }) {
     if (!auth.currentUser) {
       throw new Error('Firebase user session is not active.');
     }
-    await sendEmailVerification(auth.currentUser);
-  }, []);
+    if (auth.currentUser.emailVerified) {
+      await auth.currentUser.getIdToken(true).catch(() => {});
+      await restoreAuthState(auth.currentUser);
+      return;
+    }
+
+    const lastSent = Number(sessionStorage.getItem(VERIFICATION_SENT_AT_KEY) || '0');
+    const elapsed = Date.now() - lastSent;
+    if (elapsed < 60_000) {
+      const waitSec = Math.ceil((60_000 - elapsed) / 1000);
+      throw new Error(
+        `Verification email was already sent recently. Please check ${ADMIN_EMAIL} (Inbox/Spam) or wait ${waitSec}s before trying again.`
+      );
+    }
+
+    try {
+      await sendEmailVerification(auth.currentUser);
+      sessionStorage.setItem(VERIFICATION_SENT_AT_KEY, String(Date.now()));
+    } catch (err) {
+      const code =
+        typeof err === 'object' && err !== null && 'code' in err
+          ? String((err as { code?: string }).code || '')
+          : '';
+      if (code === 'auth/too-many-requests') {
+        throw new Error(
+          `Firebase rate-limit reached (auth/too-many-requests). Please check ${ADMIN_EMAIL} (Inbox, Spam & All Mail) for the verification link already sent, or wait 15–30 minutes before requesting another email.`
+        );
+      }
+      throw err;
+    }
+  }, [restoreAuthState]);
+
+  const reloadAdminVerificationStatus = useCallback(async () => {
+    const current = auth.currentUser;
+    if (!current) {
+      return false;
+    }
+    await current.reload();
+    if (current.emailVerified) {
+      await current.getIdToken(true);
+    }
+    setUser(auth.currentUser);
+    await restoreAuthState(auth.currentUser);
+    return Boolean(auth.currentUser?.emailVerified);
+  }, [restoreAuthState]);
 
   const getAdminAuthToken = useCallback(async () => {
     if (
@@ -501,6 +556,7 @@ export function SiteDataProvider({ children }: { children: React.ReactNode }) {
         verifyAdminEmail,
         signInAdminWithCredentials,
         sendAdminVerificationEmail,
+        reloadAdminVerificationStatus,
         getAdminAuthToken,
         signOutAdmin,
         refreshPublicData,

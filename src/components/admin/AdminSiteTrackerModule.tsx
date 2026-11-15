@@ -12,7 +12,7 @@ import {
   AlertCircle,
   CheckCircle2,
 } from 'lucide-react';
-import { db, OperationType, handleFirestoreError } from '../../lib/firebase';
+import { auth, db, OperationType, handleFirestoreError } from '../../lib/firebase';
 import { SiteTrackerRecord } from '../../types/solar';
 import { AdminConfirmModal } from './AdminConfirmModal';
 
@@ -330,9 +330,33 @@ export function AdminSiteTrackerModule({
     setModalOpen(true);
   };
 
+  const describeFirestoreFailure = (wrapped: unknown, fallback: string) => {
+    if (!auth.currentUser) {
+      return 'Firebase Auth session is not active. Click "Sign Out" and log in again now that Email/Password is enabled in Firebase Console.';
+    }
+    if (!auth.currentUser.emailVerified) {
+      return `Email (${auth.currentUser.email}) is not verified yet. Open Gmail, click the verification link, then click "I've Verified — Check Status" at the top of the Admin Dashboard.`;
+    }
+    if (wrapped instanceof Error) {
+      try {
+        const parsed = JSON.parse(wrapped.message) as { error?: string };
+        if (parsed.error) return `Firestore error: ${parsed.error}`;
+      } catch {
+        return wrapped.message || fallback;
+      }
+    }
+    return fallback;
+  };
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
+
+    if (!form.customerName.trim() || !form.mobileNo.trim() || !form.currentStatus.trim()) {
+      setErrorMsg('Customer Name, Mobile No, and Current Status are required.');
+      return;
+    }
+
     setSaving(true);
     const id = editingRecord?.id || `site_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
     const payload = {
@@ -401,11 +425,7 @@ export function AdminSiteTrackerModule({
           `site_trackers/${id}`
         );
       } catch (wrapped) {
-        setErrorMsg(
-          wrapped instanceof Error
-            ? 'Unable to save to Firestore. Verify Firebase Email/Password authentication is active.'
-            : 'Save failed.'
-        );
+        setErrorMsg(describeFirestoreFailure(wrapped, 'Save failed.'));
       }
     } finally {
       setSaving(false);
@@ -434,8 +454,8 @@ export function AdminSiteTrackerModule({
     } catch (error) {
       try {
         handleFirestoreError(error, OperationType.UPDATE, `site_trackers/${rec.id}`);
-      } catch {
-        setErrorMsg('Unable to update status in Firestore. Please verify Firebase authentication.');
+      } catch (wrapped) {
+        setErrorMsg(describeFirestoreFailure(wrapped, 'Unable to update status in Firestore.'));
       }
     } finally {
       setInlineBusyId(null);
@@ -453,8 +473,8 @@ export function AdminSiteTrackerModule({
     } catch (error) {
       try {
         handleFirestoreError(error, OperationType.DELETE, `site_trackers/${deleteTarget.id}`);
-      } catch {
-        setErrorMsg('Unable to delete record from Firestore.');
+      } catch (wrapped) {
+        setErrorMsg(describeFirestoreFailure(wrapped, 'Unable to delete record from Firestore.'));
       }
     }
   };

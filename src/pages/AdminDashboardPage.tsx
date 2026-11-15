@@ -97,6 +97,7 @@ export function AdminDashboardPage() {
     authReady,
     isAdmin,
     sendAdminVerificationEmail,
+    reloadAdminVerificationStatus,
     signOutAdmin,
     siteSettings,
     subsidySettings,
@@ -107,6 +108,7 @@ export function AdminDashboardPage() {
 
   const [tab, setTab] = useState<AdminTab>('overview');
   const [verificationSent, setVerificationSent] = useState(false);
+  const [checkingVerification, setCheckingVerification] = useState(false);
   const [verificationError, setVerificationError] = useState<string | null>(null);
   const [loadingAdminData, setLoadingAdminData] = useState(true);
   const [enquiries, setEnquiries] = useState<EnquiryRecord[]>([]);
@@ -286,22 +288,63 @@ export function AdminDashboardPage() {
                   )}
                 </div>
               </div>
-              {firebaseAuthState === 'unverified_email' && (
+              {firebaseAuthState === 'unverified_email' ? (
+                <div className="shrink-0 flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    disabled={checkingVerification}
+                    onClick={async () => {
+                      setVerificationError(null);
+                      setCheckingVerification(true);
+                      try {
+                        const verified = await reloadAdminVerificationStatus();
+                        if (verified) {
+                          await handleRefreshAll();
+                        } else {
+                          setVerificationError(
+                            `Email is still unverified. Open ${adminEmail} (Inbox / Spam / All Mail), click the Firebase link, then click "I've Verified — Check Status" again.`
+                          );
+                        }
+                      } catch (err) {
+                        setVerificationError(
+                          err instanceof Error ? err.message : 'Unable to check verification status.'
+                        );
+                      } finally {
+                        setCheckingVerification(false);
+                      }
+                    }}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold bg-[#15803D] text-white rounded-lg hover:bg-[#166534] disabled:opacity-60 cursor-pointer"
+                  >
+                    <ShieldCheck className="w-3.5 h-3.5" aria-hidden="true" />
+                    <span>{checkingVerification ? 'Checking...' : "I've Verified — Check Status"}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      setVerificationError(null);
+                      try {
+                        await sendAdminVerificationEmail();
+                        setVerificationSent(true);
+                      } catch (err) {
+                        setVerificationError(
+                          err instanceof Error ? err.message : 'Unable to send verification email.'
+                        );
+                      }
+                    }}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold bg-[#0B1D39] text-white rounded-lg hover:bg-[#132B52] cursor-pointer"
+                  >
+                    <MailCheck className="w-3.5 h-3.5" aria-hidden="true" />
+                    <span>{verificationSent ? 'Verification Email Sent' : 'Send Verification Email'}</span>
+                  </button>
+                </div>
+              ) : (
                 <button
                   type="button"
-                  onClick={async () => {
-                    setVerificationError(null);
-                    try {
-                      await sendAdminVerificationEmail();
-                      setVerificationSent(true);
-                    } catch (err) {
-                      setVerificationError(err instanceof Error ? err.message : 'Unable to send verification email.');
-                    }
-                  }}
+                  onClick={signOutAdmin}
                   className="shrink-0 inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold bg-[#0B1D39] text-white rounded-lg hover:bg-[#132B52] cursor-pointer"
                 >
-                  <MailCheck className="w-3.5 h-3.5" aria-hidden="true" />
-                  <span>{verificationSent ? 'Verification Email Sent' : 'Send Verification Email'}</span>
+                  <LogOut className="w-3.5 h-3.5" aria-hidden="true" />
+                  <span>Sign Out & Re-Login to Connect Firebase</span>
                 </button>
               )}
             </div>
