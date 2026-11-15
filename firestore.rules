@@ -29,7 +29,8 @@ service cloud.firestore {
 
     function isAdmin() {
       return isVerifiedUser() &&
-        request.auth.token.email == 'charvisolarenergy@gmail.com';
+        request.auth.token.email is string &&
+        request.auth.token.email.lower() == 'charvisolarenergy@gmail.com';
     }
 
     function isValidString(val, minLen, maxLen) {
@@ -235,50 +236,22 @@ service cloud.firestore {
       return data.keys().hasAll([
         'id', 'srNo', 'customerName', 'mobileNo', 'currentStatus', 'createdAt', 'updatedAt'
       ]) &&
-      data.keys().hasOnly([
+      data.keys().removeAll([
         'id', 'srNo', 'regSession', 'regMonth', 'regDate', 'customerName', 'mobileNo',
         'cashLoan', 'loanStatus', 'currentStatus', 'applicationNo', 'consumerNo',
         'registration', 'agreement', 'installedDate', 'siteInstalled', 'dcrCreate',
-        'netmetering', 'subsidyApply', 'subsidyDisbursal', 'plant', 'reference',
-        'plantType', 'solarPanel', 'inverter', 'battery', 'plantKw', 'categoryPlant',
-        'pendingPay', 'firstPayAmt', 'firstPayDate', 'secondPayAmt', 'secondPayDate',
-        'party', 'vendor', 'dailyNotes', 'createdAt', 'updatedAt'
+        'netmetering', 'subsidyApply', 'subsidyDisbursal'
+      ]).hasOnly([
+        'plant', 'reference', 'plantType', 'solarPanel', 'inverter', 'battery',
+        'plantKw', 'categoryPlant', 'pendingPay', 'firstPayAmt', 'firstPayDate',
+        'secondPayAmt', 'secondPayDate', 'party', 'vendor', 'dailyNotes',
+        'createdAt', 'updatedAt'
       ]) &&
       isValidId(data.id) &&
       data.srNo is number && data.srNo >= 1 && data.srNo <= 1000000 &&
       isValidString(data.customerName, 1, 140) &&
       isValidString(data.mobileNo, 1, 30) &&
       isValidString(data.currentStatus, 1, 160) &&
-      (!('regSession' in data) || isValidString(data.regSession, 0, 40)) &&
-      (!('regMonth' in data) || isValidString(data.regMonth, 0, 30)) &&
-      (!('regDate' in data) || isValidString(data.regDate, 0, 40)) &&
-      (!('cashLoan' in data) || isValidString(data.cashLoan, 0, 30)) &&
-      (!('loanStatus' in data) || isValidString(data.loanStatus, 0, 80)) &&
-      (!('applicationNo' in data) || isValidString(data.applicationNo, 0, 80)) &&
-      (!('consumerNo' in data) || isValidString(data.consumerNo, 0, 80)) &&
-      (!('registration' in data) || isValidString(data.registration, 0, 80)) &&
-      (!('agreement' in data) || isValidString(data.agreement, 0, 80)) &&
-      (!('installedDate' in data) || isValidString(data.installedDate, 0, 40)) &&
-      (!('siteInstalled' in data) || isValidString(data.siteInstalled, 0, 80)) &&
-      (!('dcrCreate' in data) || isValidString(data.dcrCreate, 0, 80)) &&
-      (!('netmetering' in data) || isValidString(data.netmetering, 0, 80)) &&
-      (!('subsidyApply' in data) || isValidString(data.subsidyApply, 0, 80)) &&
-      (!('subsidyDisbursal' in data) || isValidString(data.subsidyDisbursal, 0, 80)) &&
-      (!('plant' in data) || isValidString(data.plant, 0, 100)) &&
-      (!('reference' in data) || isValidString(data.reference, 0, 120)) &&
-      (!('plantType' in data) || isValidString(data.plantType, 0, 60)) &&
-      (!('solarPanel' in data) || isValidString(data.solarPanel, 0, 120)) &&
-      (!('inverter' in data) || isValidString(data.inverter, 0, 120)) &&
-      (!('battery' in data) || isValidString(data.battery, 0, 120)) &&
-      (!('plantKw' in data) || isValidString(data.plantKw, 0, 40)) &&
-      (!('categoryPlant' in data) || isValidString(data.categoryPlant, 0, 60)) &&
-      (!('pendingPay' in data) || isValidString(data.pendingPay, 0, 40)) &&
-      (!('firstPayAmt' in data) || isValidString(data.firstPayAmt, 0, 40)) &&
-      (!('firstPayDate' in data) || isValidString(data.firstPayDate, 0, 40)) &&
-      (!('secondPayAmt' in data) || isValidString(data.secondPayAmt, 0, 40)) &&
-      (!('secondPayDate' in data) || isValidString(data.secondPayDate, 0, 40)) &&
-      (!('party' in data) || isValidString(data.party, 0, 120)) &&
-      (!('vendor' in data) || isValidString(data.vendor, 0, 120)) &&
       (!('dailyNotes' in data) || isValidString(data.dailyNotes, 0, 2000)) &&
       data.createdAt is timestamp &&
       data.updatedAt is timestamp;

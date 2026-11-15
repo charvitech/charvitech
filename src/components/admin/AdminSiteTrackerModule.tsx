@@ -1,5 +1,15 @@
 import React, { useMemo, useState } from 'react';
-import { doc, setDoc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
+import {
+  collection,
+  deleteDoc,
+  doc,
+  getDocs,
+  limit,
+  query,
+  serverTimestamp,
+  setDoc,
+  updateDoc,
+} from 'firebase/firestore';
 import * as XLSX from 'xlsx';
 import {
   Plus,
@@ -330,12 +340,26 @@ export function AdminSiteTrackerModule({
     setModalOpen(true);
   };
 
-  const describeFirestoreFailure = (wrapped: unknown, fallback: string) => {
+  const describeFirestoreFailure = async (wrapped: unknown, fallback: string) => {
     if (!auth.currentUser) {
       return 'Firebase Auth session is not active. Click "Sign Out" and log in again now that Email/Password is enabled in Firebase Console.';
     }
     if (!auth.currentUser.emailVerified) {
       return `Email (${auth.currentUser.email}) is not verified yet. Open Gmail, click the verification link, then click "I've Verified — Check Status" at the top of the Admin Dashboard.`;
+    }
+    let jwtInfo = '';
+    try {
+      const tokenRes = await auth.currentUser.getIdTokenResult(true);
+      let canList = 'unknown';
+      try {
+        await getDocs(query(collection(db, 'site_trackers'), limit(1)));
+        canList = 'yes';
+      } catch {
+        canList = 'no';
+      }
+      jwtInfo = `, jwtEmail: ${String(tokenRes.claims.email)}, jwtVerified: ${String(tokenRes.claims.email_verified)}, canList: ${canList}`;
+    } catch {
+      // ignore diagnostic error
     }
     if (wrapped instanceof Error) {
       try {
@@ -346,7 +370,7 @@ export function AdminSiteTrackerModule({
           authInfo?: { email?: string | null; emailVerified?: boolean | null };
         };
         if (parsed.error) {
-          return `Firestore error: ${parsed.error} (email: ${parsed.authInfo?.email || 'none'}, verified: ${String(parsed.authInfo?.emailVerified)}, op: ${parsed.operationType || 'write'}, path: ${parsed.path || 'site_trackers'})`;
+          return `Firestore error: ${parsed.error} (email: ${parsed.authInfo?.email || 'none'}, verified: ${String(parsed.authInfo?.emailVerified)}, op: ${parsed.operationType || 'write'}, path: ${parsed.path || 'site_trackers'}${jwtInfo})`;
         }
       } catch {
         return wrapped.message || fallback;
@@ -412,10 +436,7 @@ export function AdminSiteTrackerModule({
         await auth.currentUser.getIdToken(true).catch(() => {});
       }
       if (editingRecord) {
-        await updateDoc(doc(db, 'site_trackers', id), {
-          ...payload,
-          createdAt: editingRecord.createdAt || serverTimestamp(),
-        });
+        await updateDoc(doc(db, 'site_trackers', id), payload);
         await onLog('UPDATE_SITE_TRACKER', 'site_trackers', id, `${payload.customerName} (${payload.currentStatus})`);
         showToast(`Updated ${payload.customerName}`);
       } else {
@@ -436,7 +457,7 @@ export function AdminSiteTrackerModule({
           `site_trackers/${id}`
         );
       } catch (wrapped) {
-        setErrorMsg(describeFirestoreFailure(wrapped, 'Save failed.'));
+        setErrorMsg(await describeFirestoreFailure(wrapped, 'Save failed.'));
       }
     } finally {
       setSaving(false);
@@ -469,7 +490,7 @@ export function AdminSiteTrackerModule({
       try {
         handleFirestoreError(error, OperationType.UPDATE, `site_trackers/${rec.id}`);
       } catch (wrapped) {
-        setErrorMsg(describeFirestoreFailure(wrapped, 'Unable to update status in Firestore.'));
+        setErrorMsg(await describeFirestoreFailure(wrapped, 'Unable to update status in Firestore.'));
       }
     } finally {
       setInlineBusyId(null);
@@ -491,7 +512,7 @@ export function AdminSiteTrackerModule({
       try {
         handleFirestoreError(error, OperationType.DELETE, `site_trackers/${deleteTarget.id}`);
       } catch (wrapped) {
-        setErrorMsg(describeFirestoreFailure(wrapped, 'Unable to delete record from Firestore.'));
+        setErrorMsg(await describeFirestoreFailure(wrapped, 'Unable to delete record from Firestore.'));
       }
     }
   };
