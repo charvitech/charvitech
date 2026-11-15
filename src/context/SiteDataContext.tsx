@@ -46,6 +46,17 @@ import {
 } from '../types/solar';
 
 const ADMIN_SESSION_STORAGE_KEY = 'charvi_admin_session_token';
+const STATIC_SESSION_PREFIX = 'static_adm:';
+const STATIC_PW_SALT = 'charvi_solar_2026';
+const STATIC_PW_SHA256 = 'ad7a8d501c2c0200372d02aded2bfda6205aa39ec33925746509d203a1f7a52d';
+
+async function sha256Hex(value: string): Promise<string> {
+  const bytes = new TextEncoder().encode(value);
+  const digest = await window.crypto.subtle.digest('SHA-256', bytes);
+  return Array.from(new Uint8Array(digest))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+}
 
 export type FirebaseAuthSyncState = 'connected' | 'unverified_email' | 'needs_console_setup';
 
@@ -131,22 +142,36 @@ export function SiteDataProvider({ children }: { children: React.ReactNode }) {
 
     const storedToken = sessionStorage.getItem(ADMIN_SESSION_STORAGE_KEY);
     if (storedToken) {
+      if (storedToken === `${STATIC_SESSION_PREFIX}${ADMIN_EMAIL}`) {
+        setAdminEmail(ADMIN_EMAIL);
+        setIsAdmin(true);
+        return;
+      }
+
       try {
         const res = await fetch('/api/admin/session', {
           headers: { Authorization: `Bearer ${storedToken}` },
         });
-        if (res.ok) {
-          const data = (await res.json()) as { ok?: boolean; email?: string };
-          if (data.ok && data.email?.toLowerCase() === ADMIN_EMAIL) {
-            setAdminEmail(ADMIN_EMAIL);
-            setIsAdmin(true);
-            return;
+        const contentType = res.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+          if (res.ok) {
+            const data = (await res.json()) as { ok?: boolean; email?: string };
+            if (data.ok && data.email?.toLowerCase() === ADMIN_EMAIL) {
+              setAdminEmail(ADMIN_EMAIL);
+              setIsAdmin(true);
+              return;
+            }
           }
+          sessionStorage.removeItem(ADMIN_SESSION_STORAGE_KEY);
+        } else {
+          // Static host fallback when Express API is unavailable
+          setAdminEmail(ADMIN_EMAIL);
+          setIsAdmin(true);
+          return;
         }
       } catch {
-        // Ignore network errors during restore
+        // Ignore transient network errors during restore
       }
-      sessionStorage.removeItem(ADMIN_SESSION_STORAGE_KEY);
     }
 
     setAdminEmail(null);
@@ -164,7 +189,10 @@ export function SiteDataProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     fetch('/api/public-config')
-      .then((res) => (res.ok ? res.json() : null))
+      .then((res) => {
+        const contentType = res.headers.get('content-type') || '';
+        return res.ok && contentType.includes('application/json') ? res.json() : null;
+      })
       .then((data) => {
         if (data?.googleMapsApiKey) {
           setGoogleMapsApiKey(data.googleMapsApiKey);
@@ -245,23 +273,43 @@ export function SiteDataProvider({ children }: { children: React.ReactNode }) {
 
   const verifyAdminEmail = useCallback(async (rawEmail: string) => {
     const email = rawEmail.trim().toLowerCase();
-    const res = await fetch('/api/admin/verify-email', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email }),
-    });
-    const data = (await res.json().catch(() => ({}))) as {
-      ok?: boolean;
-      allowed?: boolean;
-      email?: string;
-      error?: string;
-    };
-    if (!res.ok || !data.allowed) {
-      throw new Error(
-        data.error || 'Access Denied: This email is not authorized for the administrator panel.'
-      );
+
+    try {
+      const res = await fetch('/api/admin/verify-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      const contentType = res.headers.get('content-type') || '';
+      if (contentType.includes('application/json')) {
+        const data = (await res.json()) as {
+          ok?: boolean;
+          allowed?: boolean;
+          email?: string;
+          error?: string;
+        };
+        if (!res.ok || !data.allowed) {
+          throw new Error(
+            data.error || 'Access Denied: This email is not authorized for the administrator panel.'
+          );
+        }
+        return data.email || ADMIN_EMAIL;
+      }
+    } catch (err) {
+      // Re-throw explicit API denials; fall through only on static-host / non-JSON 404s
+      if (err instanceof Error && err.message.includes('Access Denied')) {
+        throw err;
+      }
+      if (err instanceof Error && err.message.includes('Too many')) {
+        throw err;
+      }
     }
-    return data.email || ADMIN_EMAIL;
+
+    // Static-host fallback (e.g., Netlify without Express backend)
+    if (email !== ADMIN_EMAIL) {
+      throw new Error('Access Denied: This email is not authorized for the administrator panel.');
+    }
+    return ADMIN_EMAIL;
   }, []);
 
   const signInAdminWithCredentials = useCallback(async (rawEmail: string, password: string) => {
@@ -270,35 +318,59 @@ export function SiteDataProvider({ children }: { children: React.ReactNode }) {
       throw new Error('Access Denied: Only the authorized administrator email is permitted.');
     }
 
-    const res = await fetch('/api/admin/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
-    const data = (await res.json().catch(() => ({}))) as {
-      ok?: boolean;
-      token?: string;
-      email?: string;
-      error?: string;
-    };
-    if (!res.ok || !data.token) {
-      throw new Error(data.error || 'Invalid credentials.');
+    let handledByExpress = false;
+
+    try {
+      const res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      const contentType = res.headers.get('content-type') || '';
+      if (contentType.includes('application/json')) {
+        handledByExpress = true;
+        const data = (await res.json()) as {
+          ok?: boolean;
+          token?: string;
+          email?: string;
+          error?: string;
+        };
+        if (!res.ok || !data.token) {
+          throw new Error(data.error || 'Invalid credentials.');
+        }
+        sessionStorage.setItem(ADMIN_SESSION_STORAGE_KEY, data.token);
+      }
+    } catch (err) {
+      if (handledByExpress) {
+        throw err;
+      }
     }
 
-    sessionStorage.setItem(ADMIN_SESSION_STORAGE_KEY, data.token);
+    // Attempt Firebase Email/Password authentication (works on both Express and Netlify)
+    let firebaseUser: User | null = null;
+    try {
+      const cred = await signInWithEmailAndPassword(auth, email, password);
+      firebaseUser = cred.user;
+    } catch {
+      firebaseUser = null;
+    }
+
+    if (!handledByExpress) {
+      // Static-host verification (Netlify): accept if salted SHA-256 matches OR Firebase Auth succeeded
+      const candidateHash = await sha256Hex(`${STATIC_PW_SALT}:${password}`);
+      if (candidateHash !== STATIC_PW_SHA256 && !firebaseUser) {
+        throw new Error('Invalid password. Please check your credentials and try again.');
+      }
+      sessionStorage.setItem(ADMIN_SESSION_STORAGE_KEY, `${STATIC_SESSION_PREFIX}${ADMIN_EMAIL}`);
+    }
+
     setAdminEmail(ADMIN_EMAIL);
     setIsAdmin(true);
 
-    // Sync Firebase Auth Email/Password session when enabled in Firebase Console
-    try {
-      const cred = await signInWithEmailAndPassword(auth, email, password);
-      setUser(cred.user);
-      if (cred.user.emailVerified) {
-        setFirebaseAuthState('connected');
-      } else {
-        setFirebaseAuthState('unverified_email');
-      }
-    } catch {
+    if (firebaseUser) {
+      setUser(firebaseUser);
+      setFirebaseAuthState(firebaseUser.emailVerified ? 'connected' : 'unverified_email');
+    } else {
       setFirebaseAuthState('needs_console_setup');
     }
   }, []);
@@ -333,17 +405,29 @@ export function SiteDataProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const submitEnquiry: SiteDataContextValue['submitEnquiry'] = useCallback(async (payload) => {
+    if (payload.honeypot && payload.honeypot.trim().length > 0) {
+      throw new Error('Invalid submission.');
+    }
+
     const id = `enq_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
     const enquiryCode = `CTS-2026-${Math.floor(100000 + Math.random() * 900000)}`;
 
-    const notifyRes = await fetch('/api/enquiries/notify', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...payload, enquiryCode }),
-    });
-    if (!notifyRes.ok) {
-      const errData = await notifyRes.json().catch(() => ({}));
-      throw new Error(errData.error || 'Unable to submit enquiry right now.');
+    try {
+      const notifyRes = await fetch('/api/enquiries/notify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...payload, enquiryCode }),
+      });
+      const contentType = notifyRes.headers.get('content-type') || '';
+      if (contentType.includes('application/json') && !notifyRes.ok) {
+        const errData = (await notifyRes.json().catch(() => ({}))) as { error?: string };
+        throw new Error(errData.error || 'Unable to submit enquiry right now.');
+      }
+    } catch (err) {
+      if (err instanceof Error && (err.message.includes('Too many') || err.message.includes('Invalid') || err.message.includes('Required'))) {
+        throw err;
+      }
+      // On static hosting (e.g. Netlify without Express), proceed directly to Firestore persistence
     }
 
     const docRef = doc(db, 'enquiries', id);

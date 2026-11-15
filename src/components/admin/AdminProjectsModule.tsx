@@ -99,6 +99,10 @@ export function AdminProjectsModule({ projects, onRefresh, onLog }: AdminProject
         },
         body: JSON.stringify({ filename: file.name, mimeType: file.type, base64Data }),
       });
+      const contentType = res.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) {
+        throw new Error('File upload requires Node server. On Netlify, paste an external image/video URL directly.');
+      }
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Upload failed');
       onDone(data.url);

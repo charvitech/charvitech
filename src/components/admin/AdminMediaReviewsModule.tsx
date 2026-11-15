@@ -29,6 +29,11 @@ export function AdminMediaModule({
   const [renameValue, setRenameValue] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<MediaAsset | null>(null);
 
+  const [urlName, setUrlName] = useState('');
+  const [urlInput, setUrlInput] = useState('');
+  const [urlType, setUrlType] = useState<MediaAsset['mediaType']>('image');
+  const [savingUrl, setSavingUrl] = useState(false);
+
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -54,6 +59,12 @@ export function AdminMediaModule({
           base64Data,
         }),
       });
+      const contentType = res.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) {
+        throw new Error(
+          'Local file upload requires the Node/Express server. On Netlify static hosting, use "Add Media by URL" below.'
+        );
+      }
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Upload failed.');
 
@@ -169,6 +180,79 @@ export function AdminMediaModule({
           </div>
         </div>
         {uploadError && <p className="text-xs text-red-600">{uploadError}</p>}
+
+        <form
+          onSubmit={async (e) => {
+            e.preventDefault();
+            if (!urlInput.trim()) return;
+            setUploadError(null);
+            setSavingUrl(true);
+            try {
+              const id = `med_${Date.now()}`;
+              await setDoc(doc(db, 'media', id), {
+                id,
+                name: (urlName.trim() || 'External Media').slice(0, 160),
+                folder: uploadFolder,
+                mediaType: urlType,
+                url: urlInput.trim().slice(0, 800),
+                altText: altText.trim().slice(0, 240),
+                sizeBytes: 0,
+                uploadedBy: adminEmail || 'charvisolarenergy@gmail.com',
+                createdAt: serverTimestamp(),
+              });
+              await onLog('ADD_MEDIA_URL', 'media', id, urlName.trim() || urlInput.trim());
+              setUrlName('');
+              setUrlInput('');
+              setAltText('');
+              await onRefresh();
+            } catch (err) {
+              setUploadError(err instanceof Error ? err.message : 'Unable to save media URL.');
+            } finally {
+              setSavingUrl(false);
+            }
+          }}
+          className="pt-4 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-4 gap-3 items-end"
+        >
+          <div>
+            <label className="block text-xs font-semibold mb-1">Or Add Media by URL</label>
+            <input
+              type="text"
+              value={urlName}
+              onChange={(e) => setUrlName(e.target.value)}
+              placeholder="Asset title (e.g. Meerut 5kW Site)"
+              className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg"
+            />
+          </div>
+          <div className="sm:col-span-2">
+            <label className="block text-xs font-semibold mb-1">Hosted Image / Video / PDF URL</label>
+            <input
+              type="url"
+              required
+              value={urlInput}
+              onChange={(e) => setUrlInput(e.target.value)}
+              placeholder="https://..."
+              className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg"
+            />
+          </div>
+          <div className="flex gap-2">
+            <select
+              value={urlType}
+              onChange={(e) => setUrlType(e.target.value as MediaAsset['mediaType'])}
+              className="px-2.5 py-2 text-xs border border-slate-300 rounded-lg bg-white"
+            >
+              <option value="image">Image</option>
+              <option value="video">Video</option>
+              <option value="pdf">PDF</option>
+            </select>
+            <button
+              type="submit"
+              disabled={savingUrl}
+              className="flex-1 px-3 py-2 text-xs font-semibold bg-[#0B1D39] text-white rounded-lg cursor-pointer"
+            >
+              {savingUrl ? 'Saving...' : 'Save URL'}
+            </button>
+          </div>
+        </form>
       </div>
 
       <div className="flex flex-wrap gap-2">
