@@ -1,0 +1,344 @@
+{
+  "entities": {
+    "SiteSetting": {
+      "title": "SiteSetting",
+      "description": "Global company profile, hero copy, about content, and contact configuration.",
+      "type": "object",
+      "properties": {
+        "companyName": { "type": "string", "maxLength": 120 },
+        "brandName": { "type": "string", "maxLength": 80 },
+        "tagline": { "type": "string", "maxLength": 140 },
+        "primaryEmail": { "type": "string", "format": "email", "maxLength": 120 },
+        "contactPerson": { "type": "string", "maxLength": 100 },
+        "founderBio": { "type": "string", "maxLength": 2000 },
+        "googleBusinessUrl": { "type": "string", "maxLength": 400 },
+        "linkedinUrl": { "type": "string", "maxLength": 400 },
+        "whatsappNumber": { "type": "string", "maxLength": 20 },
+        "heroTitle": { "type": "string", "maxLength": 160 },
+        "heroSubtitle": { "type": "string", "maxLength": 500 },
+        "heroImage": { "type": "string", "maxLength": 500 },
+        "aboutOverview": { "type": "string", "maxLength": 3000 },
+        "vision": { "type": "string", "maxLength": 1500 },
+        "mission": { "type": "string", "maxLength": 1500 },
+        "qualityCommitment": { "type": "string", "maxLength": 1500 },
+        "servicePhilosophy": { "type": "string", "maxLength": 1500 },
+        "announcementText": { "type": "string", "maxLength": 400 },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["companyName", "brandName", "primaryEmail", "updatedAt"]
+    },
+    "SubsidySetting": {
+      "title": "SubsidySetting",
+      "description": "Editable PM Surya Ghar central and UP state subsidy rules and solar calculator assumptions.",
+      "type": "object",
+      "properties": {
+        "central1Kw": { "type": "number" },
+        "central2Kw": { "type": "number" },
+        "central3KwPlus": { "type": "number" },
+        "statePerKw": { "type": "number" },
+        "stateMax": { "type": "number" },
+        "deadlineNote": { "type": "string", "maxLength": 400 },
+        "disclaimer": { "type": "string", "maxLength": 2000 },
+        "costPerKwOnGridMin": { "type": "number" },
+        "costPerKwOnGridMax": { "type": "number" },
+        "costPerKwHybridMin": { "type": "number" },
+        "costPerKwHybridMax": { "type": "number" },
+        "costPerKwOffGridMin": { "type": "number" },
+        "costPerKwOffGridMax": { "type": "number" },
+        "unitsPerKwMonthly": { "type": "number" },
+        "sqftPerKw": { "type": "number" },
+        "tariffPerUnitInr": { "type": "number" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["central1Kw", "central2Kw", "central3KwPlus", "statePerKw", "stateMax", "updatedAt"]
+    },
+    "SeoSetting": {
+      "title": "SeoSetting",
+      "description": "SEO, analytics, Search Console, and per-page meta settings.",
+      "type": "object",
+      "properties": {
+        "ga4MeasurementId": { "type": "string", "maxLength": 64 },
+        "gscVerificationCode": { "type": "string", "maxLength": 128 },
+        "defaultOgImage": { "type": "string", "maxLength": 500 },
+        "robotsPolicy": { "type": "string", "maxLength": 1000 },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["updatedAt"]
+    },
+    "Branch": {
+      "title": "Branch",
+      "description": "Meerut and Aligarh branch office details.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-zA-Z0-9_\\-]+$", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 120 },
+        "city": { "type": "string", "maxLength": 80 },
+        "phone": { "type": "string", "maxLength": 30 },
+        "address": { "type": "string", "maxLength": 500 },
+        "isAddressVerified": { "type": "boolean" },
+        "email": { "type": "string", "maxLength": 120 },
+        "timings": { "type": "string", "maxLength": 160 },
+        "lat": { "type": "number" },
+        "lng": { "type": "number" },
+        "mapDirectionsUrl": { "type": "string", "maxLength": 500 },
+        "photoUrl": { "type": "string", "maxLength": 500 },
+        "localSeoHeadline": { "type": "string", "maxLength": 200 },
+        "localSeoSummary": { "type": "string", "maxLength": 2000 },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "name", "city", "phone", "address", "isAddressVerified", "updatedAt"]
+    },
+    "Project": {
+      "title": "Project",
+      "description": "Solar installation portfolio record.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-zA-Z0-9_\\-]+$", "maxLength": 128 },
+        "slug": { "type": "string", "pattern": "^[a-z0-9\\-]+$", "maxLength": 140 },
+        "title": { "type": "string", "maxLength": 180 },
+        "location": { "type": "string", "maxLength": 140 },
+        "city": { "type": "string", "maxLength": 80 },
+        "category": { "type": "string", "enum": ["Residential", "Commercial", "Industrial"] },
+        "solarType": { "type": "string", "enum": ["On-Grid", "Off-Grid", "Hybrid"] },
+        "capacityKw": { "type": "number" },
+        "installationDate": { "type": "string", "maxLength": 40 },
+        "panelBrand": { "type": "string", "maxLength": 100 },
+        "inverterBrand": { "type": "string", "maxLength": 100 },
+        "structureDetails": { "type": "string", "maxLength": 240 },
+        "description": { "type": "string", "maxLength": 3000 },
+        "images": { "type": "array" },
+        "beforeImage": { "type": "string", "maxLength": 500 },
+        "afterImage": { "type": "string", "maxLength": 500 },
+        "videoUrl": { "type": "string", "maxLength": 500 },
+        "customerTestimonial": { "type": "string", "maxLength": 1000 },
+        "customerApproved": { "type": "boolean" },
+        "published": { "type": "boolean" },
+        "featured": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "slug", "title", "location", "category", "solarType", "capacityKw", "published", "featured", "createdAt", "updatedAt"]
+    },
+    "Product": {
+      "title": "Product",
+      "description": "Solar panels, inverters, structures, and electrical components.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-zA-Z0-9_\\-]+$", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 160 },
+        "brand": { "type": "string", "maxLength": 100 },
+        "category": { "type": "string", "maxLength": 80 },
+        "description": { "type": "string", "maxLength": 2000 },
+        "specifications": { "type": "string", "maxLength": 2000 },
+        "imageUrl": { "type": "string", "maxLength": 500 },
+        "datasheetUrl": { "type": "string", "maxLength": 500 },
+        "availability": { "type": "string", "enum": ["Available", "On Order", "Out of Stock"] },
+        "published": { "type": "boolean" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "name", "brand", "category", "availability", "published", "updatedAt"]
+    },
+    "Review": {
+      "title": "Review",
+      "description": "Verified customer review with consent metadata.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-zA-Z0-9_\\-]+$", "maxLength": 128 },
+        "customerName": { "type": "string", "maxLength": 120 },
+        "city": { "type": "string", "maxLength": 80 },
+        "systemSize": { "type": "string", "maxLength": 60 },
+        "rating": { "type": "number" },
+        "reviewText": { "type": "string", "maxLength": 1500 },
+        "googleReviewUrl": { "type": "string", "maxLength": 500 },
+        "screenshotUrl": { "type": "string", "maxLength": 500 },
+        "customerPhotoUrl": { "type": "string", "maxLength": 500 },
+        "consentObtained": { "type": "boolean" },
+        "verified": { "type": "boolean" },
+        "published": { "type": "boolean" },
+        "reviewDate": { "type": "string", "maxLength": 40 },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "customerName", "city", "reviewText", "consentObtained", "verified", "published", "updatedAt"]
+    },
+    "Faq": {
+      "title": "Faq",
+      "description": "Frequently asked questions organized by solar category.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-zA-Z0-9_\\-]+$", "maxLength": 128 },
+        "question": { "type": "string", "maxLength": 300 },
+        "answer": { "type": "string", "maxLength": 2000 },
+        "category": { "type": "string", "maxLength": 60 },
+        "sortOrder": { "type": "number" },
+        "published": { "type": "boolean" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "question", "answer", "category", "published", "updatedAt"]
+    },
+    "MediaAsset": {
+      "title": "MediaAsset",
+      "description": "Uploaded image, video, or PDF datasheet metadata.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-zA-Z0-9_\\-]+$", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 160 },
+        "folder": { "type": "string", "maxLength": 60 },
+        "mediaType": { "type": "string", "enum": ["image", "video", "pdf"] },
+        "url": { "type": "string", "maxLength": 800 },
+        "altText": { "type": "string", "maxLength": 240 },
+        "sizeBytes": { "type": "number" },
+        "uploadedBy": { "type": "string", "maxLength": 120 },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "name", "folder", "mediaType", "url", "createdAt"]
+    },
+    "Enquiry": {
+      "title": "Enquiry",
+      "description": "Customer solar quotation lead and follow-up tracking (PII).",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-zA-Z0-9_\\-]+$", "maxLength": 128 },
+        "enquiryCode": { "type": "string", "maxLength": 40 },
+        "customerName": { "type": "string", "maxLength": 120 },
+        "mobile": { "type": "string", "maxLength": 25 },
+        "email": { "type": "string", "maxLength": 120 },
+        "city": { "type": "string", "maxLength": 80 },
+        "propertyType": { "type": "string", "enum": ["Residential", "Commercial", "Industrial"] },
+        "monthlyBill": { "type": "string", "maxLength": 40 },
+        "requiredCapacity": { "type": "string", "maxLength": 40 },
+        "systemType": { "type": "string", "enum": ["On-Grid", "Off-Grid", "Hybrid"] },
+        "branchPreference": { "type": "string", "maxLength": 60 },
+        "message": { "type": "string", "maxLength": 2000 },
+        "leadSource": { "type": "string", "maxLength": 120 },
+        "status": { "type": "string", "enum": ["New", "Contacted", "Follow-up", "Quotation Sent", "Converted", "Closed"] },
+        "internalNotes": { "type": "string", "maxLength": 2000 },
+        "followUpHistory": { "type": "array" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "enquiryCode", "customerName", "mobile", "city", "propertyType", "systemType", "status", "createdAt", "updatedAt"]
+    },
+    "AdminUser": {
+      "title": "AdminUser",
+      "description": "Authorized admin user and role record.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "pattern": "^[a-zA-Z0-9_\\-]+$", "maxLength": 128 },
+        "email": { "type": "string", "maxLength": 120 },
+        "displayName": { "type": "string", "maxLength": 120 },
+        "role": { "type": "string", "enum": ["super_admin", "editor"] },
+        "active": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "role", "active", "createdAt"]
+    },
+    "AdminLog": {
+      "title": "AdminLog",
+      "description": "Immutable admin audit log entry.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-zA-Z0-9_\\-]+$", "maxLength": 128 },
+        "actorEmail": { "type": "string", "maxLength": 120 },
+        "actorUid": { "type": "string", "maxLength": 128 },
+        "action": { "type": "string", "maxLength": 80 },
+        "targetType": { "type": "string", "maxLength": 80 },
+        "targetId": { "type": "string", "maxLength": 128 },
+        "details": { "type": "string", "maxLength": 500 },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "actorEmail", "actorUid", "action", "targetType", "createdAt"]
+    },
+    "SiteTracker": {
+      "title": "SiteTracker",
+      "description": "Admin-only daily solar EPC site status tracker and Excel export record.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-zA-Z0-9_\\-]+$", "maxLength": 128 },
+        "srNo": { "type": "number" },
+        "regSession": { "type": "string", "maxLength": 40 },
+        "regMonth": { "type": "string", "maxLength": 30 },
+        "regDate": { "type": "string", "maxLength": 40 },
+        "customerName": { "type": "string", "maxLength": 140 },
+        "mobileNo": { "type": "string", "maxLength": 30 },
+        "cashLoan": { "type": "string", "maxLength": 30 },
+        "loanStatus": { "type": "string", "maxLength": 80 },
+        "currentStatus": { "type": "string", "maxLength": 160 },
+        "applicationNo": { "type": "string", "maxLength": 80 },
+        "consumerNo": { "type": "string", "maxLength": 80 },
+        "registration": { "type": "string", "maxLength": 80 },
+        "agreement": { "type": "string", "maxLength": 80 },
+        "installedDate": { "type": "string", "maxLength": 40 },
+        "siteInstalled": { "type": "string", "maxLength": 80 },
+        "dcrCreate": { "type": "string", "maxLength": 80 },
+        "netmetering": { "type": "string", "maxLength": 80 },
+        "subsidyApply": { "type": "string", "maxLength": 80 },
+        "subsidyDisbursal": { "type": "string", "maxLength": 80 },
+        "plant": { "type": "string", "maxLength": 100 },
+        "reference": { "type": "string", "maxLength": 120 },
+        "plantType": { "type": "string", "maxLength": 60 },
+        "solarPanel": { "type": "string", "maxLength": 120 },
+        "inverter": { "type": "string", "maxLength": 120 },
+        "battery": { "type": "string", "maxLength": 120 },
+        "plantKw": { "type": "string", "maxLength": 40 },
+        "categoryPlant": { "type": "string", "maxLength": 60 },
+        "pendingPay": { "type": "string", "maxLength": 40 },
+        "firstPayAmt": { "type": "string", "maxLength": 40 },
+        "firstPayDate": { "type": "string", "maxLength": 40 },
+        "secondPayAmt": { "type": "string", "maxLength": 40 },
+        "secondPayDate": { "type": "string", "maxLength": 40 },
+        "party": { "type": "string", "maxLength": 120 },
+        "vendor": { "type": "string", "maxLength": 120 },
+        "dailyNotes": { "type": "string", "maxLength": 2000 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "srNo", "customerName", "mobileNo", "currentStatus", "createdAt", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/settings/{settingId}": {
+      "schema": { "$ref": "#/entities/SiteSetting" },
+      "description": "Site, subsidy, and SEO configuration documents."
+    },
+    "/branches/{branchId}": {
+      "schema": { "$ref": "#/entities/Branch" },
+      "description": "Branch office profiles for Meerut and Aligarh."
+    },
+    "/projects/{projectId}": {
+      "schema": { "$ref": "#/entities/Project" },
+      "description": "Solar EPC project portfolio entries."
+    },
+    "/products/{productId}": {
+      "schema": { "$ref": "#/entities/Product" },
+      "description": "Solar panels, inverters, structures, and accessories catalog."
+    },
+    "/reviews/{reviewId}": {
+      "schema": { "$ref": "#/entities/Review" },
+      "description": "Customer reviews with consent and verification flags."
+    },
+    "/faqs/{faqId}": {
+      "schema": { "$ref": "#/entities/Faq" },
+      "description": "Frequently asked questions."
+    },
+    "/media/{mediaId}": {
+      "schema": { "$ref": "#/entities/MediaAsset" },
+      "description": "Media library metadata for uploaded images, videos, and PDFs."
+    },
+    "/enquiries/{enquiryId}": {
+      "schema": { "$ref": "#/entities/Enquiry" },
+      "description": "Private customer quotation enquiries and lead CRM."
+    },
+    "/admin_users/{uid}": {
+      "schema": { "$ref": "#/entities/AdminUser" },
+      "description": "Role-based admin user directory."
+    },
+    "/admin_logs/{logId}": {
+      "schema": { "$ref": "#/entities/AdminLog" },
+      "description": "Audit log of administrative actions."
+    },
+    "/site_trackers/{trackerId}": {
+      "schema": { "$ref": "#/entities/SiteTracker" },
+      "description": "Admin-only daily solar EPC site work & UPPCL/subsidy/payment tracking records."
+    }
+  }
+}

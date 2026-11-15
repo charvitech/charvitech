@@ -1,0 +1,6 @@
+{
+  "name": "Charvi Technologies and Services | Charvi Solar",
+  "description": "Official solar EPC platform for Charvi Technologies and Services (Charvi Solar) serving Meerut, Aligarh & Uttar Pradesh with Residential, Commercial, Industrial & PM Surya Ghar solar solutions.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

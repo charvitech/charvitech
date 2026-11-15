@@ -1,0 +1,387 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global default-deny safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Helper Primitives ---
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedUser() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isAdmin() {
+      return isVerifiedUser() &&
+        request.auth.token.email == 'charvisolarenergy@gmail.com';
+    }
+
+    function isValidString(val, minLen, maxLen) {
+      return val is string && val.size() >= minLen && val.size() <= maxLen;
+    }
+
+    function isValidStringList(val, maxItems) {
+      return val is list && val.size() <= maxItems && (val.size() == 0 || val[0] is string);
+    }
+
+    // --- Entity Validation Blueprints ---
+    function isValidSetting(data) {
+      return data.keys().hasAll(['updatedAt']) &&
+        data.keys().size() <= 40 &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidBranch(data) {
+      return data.keys().hasAll(['id', 'name', 'city', 'phone', 'address', 'isAddressVerified', 'updatedAt']) &&
+        data.keys().hasOnly([
+          'id', 'name', 'city', 'phone', 'address', 'isAddressVerified',
+          'email', 'timings', 'lat', 'lng', 'mapDirectionsUrl', 'photoUrl',
+          'localSeoHeadline', 'localSeoSummary', 'updatedAt'
+        ]) &&
+        isValidId(data.id) &&
+        isValidString(data.name, 2, 120) &&
+        isValidString(data.city, 2, 80) &&
+        isValidString(data.phone, 6, 30) &&
+        isValidString(data.address, 5, 500) &&
+        data.isAddressVerified is bool &&
+        (!('email' in data) || isValidString(data.email, 0, 120)) &&
+        (!('timings' in data) || isValidString(data.timings, 0, 160)) &&
+        (!('lat' in data) || data.lat is number) &&
+        (!('lng' in data) || data.lng is number) &&
+        (!('mapDirectionsUrl' in data) || isValidString(data.mapDirectionsUrl, 0, 500)) &&
+        (!('photoUrl' in data) || isValidString(data.photoUrl, 0, 500)) &&
+        (!('localSeoHeadline' in data) || isValidString(data.localSeoHeadline, 0, 200)) &&
+        (!('localSeoSummary' in data) || isValidString(data.localSeoSummary, 0, 2000)) &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidProject(data) {
+      return data.keys().hasAll([
+        'id', 'slug', 'title', 'location', 'category', 'solarType',
+        'capacityKw', 'published', 'featured', 'createdAt', 'updatedAt'
+      ]) &&
+      data.keys().hasOnly([
+        'id', 'slug', 'title', 'location', 'city', 'category', 'solarType',
+        'capacityKw', 'installationDate', 'panelBrand', 'inverterBrand',
+        'structureDetails', 'description', 'images', 'beforeImage', 'afterImage',
+        'videoUrl', 'customerTestimonial', 'customerApproved',
+        'published', 'featured', 'createdAt', 'updatedAt'
+      ]) &&
+      isValidId(data.id) &&
+      isValidString(data.slug, 2, 140) &&
+      isValidString(data.title, 3, 180) &&
+      isValidString(data.location, 2, 140) &&
+      (!('city' in data) || isValidString(data.city, 0, 80)) &&
+      data.category in ['Residential', 'Commercial', 'Industrial'] &&
+      data.solarType in ['On-Grid', 'Off-Grid', 'Hybrid'] &&
+      data.capacityKw is number && data.capacityKw > 0 && data.capacityKw <= 50000 &&
+      (!('installationDate' in data) || isValidString(data.installationDate, 0, 40)) &&
+      (!('panelBrand' in data) || isValidString(data.panelBrand, 0, 100)) &&
+      (!('inverterBrand' in data) || isValidString(data.inverterBrand, 0, 100)) &&
+      (!('structureDetails' in data) || isValidString(data.structureDetails, 0, 240)) &&
+      (!('description' in data) || isValidString(data.description, 0, 3000)) &&
+      (!('images' in data) || isValidStringList(data.images, 10)) &&
+      (!('beforeImage' in data) || isValidString(data.beforeImage, 0, 500)) &&
+      (!('afterImage' in data) || isValidString(data.afterImage, 0, 500)) &&
+      (!('videoUrl' in data) || isValidString(data.videoUrl, 0, 500)) &&
+      (!('customerTestimonial' in data) || isValidString(data.customerTestimonial, 0, 1000)) &&
+      (!('customerApproved' in data) || data.customerApproved is bool) &&
+      data.published is bool &&
+      data.featured is bool &&
+      data.createdAt is timestamp &&
+      data.updatedAt is timestamp;
+    }
+
+    function isValidProduct(data) {
+      return data.keys().hasAll(['id', 'name', 'brand', 'category', 'availability', 'published', 'updatedAt']) &&
+        data.keys().hasOnly([
+          'id', 'name', 'brand', 'category', 'description', 'specifications',
+          'imageUrl', 'datasheetUrl', 'availability', 'published', 'updatedAt'
+        ]) &&
+        isValidId(data.id) &&
+        isValidString(data.name, 2, 160) &&
+        isValidString(data.brand, 2, 100) &&
+        isValidString(data.category, 2, 80) &&
+        (!('description' in data) || isValidString(data.description, 0, 2000)) &&
+        (!('specifications' in data) || isValidString(data.specifications, 0, 2000)) &&
+        (!('imageUrl' in data) || isValidString(data.imageUrl, 0, 500)) &&
+        (!('datasheetUrl' in data) || isValidString(data.datasheetUrl, 0, 500)) &&
+        data.availability in ['Available', 'On Order', 'Out of Stock'] &&
+        data.published is bool &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidReview(data) {
+      return data.keys().hasAll(['id', 'customerName', 'city', 'reviewText', 'consentObtained', 'verified', 'published', 'updatedAt']) &&
+        data.keys().hasOnly([
+          'id', 'customerName', 'city', 'systemSize', 'rating', 'reviewText',
+          'googleReviewUrl', 'screenshotUrl', 'customerPhotoUrl',
+          'consentObtained', 'verified', 'published', 'reviewDate', 'updatedAt'
+        ]) &&
+        isValidId(data.id) &&
+        isValidString(data.customerName, 2, 120) &&
+        isValidString(data.city, 2, 80) &&
+        (!('systemSize' in data) || isValidString(data.systemSize, 0, 60)) &&
+        (!('rating' in data) || (data.rating is number && data.rating >= 1 && data.rating <= 5)) &&
+        isValidString(data.reviewText, 5, 1500) &&
+        (!('googleReviewUrl' in data) || isValidString(data.googleReviewUrl, 0, 500)) &&
+        (!('screenshotUrl' in data) || isValidString(data.screenshotUrl, 0, 500)) &&
+        (!('customerPhotoUrl' in data) || isValidString(data.customerPhotoUrl, 0, 500)) &&
+        data.consentObtained is bool &&
+        data.verified is bool &&
+        data.published is bool &&
+        (!('reviewDate' in data) || isValidString(data.reviewDate, 0, 40)) &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidFaq(data) {
+      return data.keys().hasAll(['id', 'question', 'answer', 'category', 'published', 'updatedAt']) &&
+        data.keys().hasOnly(['id', 'question', 'answer', 'category', 'sortOrder', 'published', 'updatedAt']) &&
+        isValidId(data.id) &&
+        isValidString(data.question, 5, 300) &&
+        isValidString(data.answer, 5, 2000) &&
+        isValidString(data.category, 2, 60) &&
+        (!('sortOrder' in data) || data.sortOrder is number) &&
+        data.published is bool &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidMedia(data) {
+      return data.keys().hasAll(['id', 'name', 'folder', 'mediaType', 'url', 'createdAt']) &&
+        data.keys().hasOnly(['id', 'name', 'folder', 'mediaType', 'url', 'altText', 'sizeBytes', 'uploadedBy', 'createdAt']) &&
+        isValidId(data.id) &&
+        isValidString(data.name, 1, 160) &&
+        isValidString(data.folder, 1, 60) &&
+        data.mediaType in ['image', 'video', 'pdf'] &&
+        isValidString(data.url, 1, 800) &&
+        (!('altText' in data) || isValidString(data.altText, 0, 240)) &&
+        (!('sizeBytes' in data) || (data.sizeBytes is number && data.sizeBytes >= 0)) &&
+        (!('uploadedBy' in data) || isValidString(data.uploadedBy, 0, 120)) &&
+        data.createdAt is timestamp;
+    }
+
+    function isValidEnquiry(data) {
+      return data.keys().hasAll([
+        'id', 'enquiryCode', 'customerName', 'mobile', 'city',
+        'propertyType', 'systemType', 'status', 'createdAt', 'updatedAt'
+      ]) &&
+      data.keys().hasOnly([
+        'id', 'enquiryCode', 'customerName', 'mobile', 'email', 'city',
+        'propertyType', 'monthlyBill', 'requiredCapacity', 'systemType',
+        'branchPreference', 'message', 'leadSource', 'status',
+        'internalNotes', 'followUpHistory', 'createdAt', 'updatedAt'
+      ]) &&
+      isValidId(data.id) &&
+      isValidString(data.enquiryCode, 4, 40) &&
+      isValidString(data.customerName, 2, 120) &&
+      isValidString(data.mobile, 8, 25) &&
+      (!('email' in data) || isValidString(data.email, 0, 120)) &&
+      isValidString(data.city, 2, 80) &&
+      data.propertyType in ['Residential', 'Commercial', 'Industrial'] &&
+      (!('monthlyBill' in data) || isValidString(data.monthlyBill, 0, 40)) &&
+      (!('requiredCapacity' in data) || isValidString(data.requiredCapacity, 0, 40)) &&
+      data.systemType in ['On-Grid', 'Off-Grid', 'Hybrid'] &&
+      (!('branchPreference' in data) || isValidString(data.branchPreference, 0, 60)) &&
+      (!('message' in data) || isValidString(data.message, 0, 2000)) &&
+      (!('leadSource' in data) || isValidString(data.leadSource, 0, 120)) &&
+      data.status in ['New', 'Contacted', 'Follow-up', 'Quotation Sent', 'Converted', 'Closed'] &&
+      (!('internalNotes' in data) || isValidString(data.internalNotes, 0, 2000)) &&
+      (!('followUpHistory' in data) || isValidStringList(data.followUpHistory, 20)) &&
+      data.createdAt is timestamp &&
+      data.updatedAt is timestamp;
+    }
+
+    function isValidAdminUser(data) {
+      return data.keys().hasAll(['uid', 'email', 'role', 'active', 'createdAt']) &&
+        data.keys().hasOnly(['uid', 'email', 'displayName', 'role', 'active', 'createdAt']) &&
+        isValidId(data.uid) &&
+        isValidString(data.email, 3, 120) &&
+        (!('displayName' in data) || isValidString(data.displayName, 0, 120)) &&
+        data.role in ['super_admin', 'editor'] &&
+        data.active is bool &&
+        data.createdAt is timestamp;
+    }
+
+    function isValidAdminLog(data) {
+      return data.keys().hasAll(['id', 'actorEmail', 'actorUid', 'action', 'targetType', 'createdAt']) &&
+        data.keys().hasOnly(['id', 'actorEmail', 'actorUid', 'action', 'targetType', 'targetId', 'details', 'createdAt']) &&
+        isValidId(data.id) &&
+        isValidString(data.actorEmail, 3, 120) &&
+        isValidId(data.actorUid) &&
+        isValidString(data.action, 2, 80) &&
+        isValidString(data.targetType, 2, 80) &&
+        (!('targetId' in data) || isValidString(data.targetId, 0, 128)) &&
+        (!('details' in data) || isValidString(data.details, 0, 500)) &&
+        data.createdAt is timestamp;
+    }
+
+    function isValidSiteTracker(data) {
+      return data.keys().hasAll([
+        'id', 'srNo', 'customerName', 'mobileNo', 'currentStatus', 'createdAt', 'updatedAt'
+      ]) &&
+      data.keys().hasOnly([
+        'id', 'srNo', 'regSession', 'regMonth', 'regDate', 'customerName', 'mobileNo',
+        'cashLoan', 'loanStatus', 'currentStatus', 'applicationNo', 'consumerNo',
+        'registration', 'agreement', 'installedDate', 'siteInstalled', 'dcrCreate',
+        'netmetering', 'subsidyApply', 'subsidyDisbursal', 'plant', 'reference',
+        'plantType', 'solarPanel', 'inverter', 'battery', 'plantKw', 'categoryPlant',
+        'pendingPay', 'firstPayAmt', 'firstPayDate', 'secondPayAmt', 'secondPayDate',
+        'party', 'vendor', 'dailyNotes', 'createdAt', 'updatedAt'
+      ]) &&
+      isValidId(data.id) &&
+      data.srNo is number && data.srNo >= 1 && data.srNo <= 1000000 &&
+      isValidString(data.customerName, 1, 140) &&
+      isValidString(data.mobileNo, 1, 30) &&
+      isValidString(data.currentStatus, 1, 160) &&
+      (!('regSession' in data) || isValidString(data.regSession, 0, 40)) &&
+      (!('regMonth' in data) || isValidString(data.regMonth, 0, 30)) &&
+      (!('regDate' in data) || isValidString(data.regDate, 0, 40)) &&
+      (!('cashLoan' in data) || isValidString(data.cashLoan, 0, 30)) &&
+      (!('loanStatus' in data) || isValidString(data.loanStatus, 0, 80)) &&
+      (!('applicationNo' in data) || isValidString(data.applicationNo, 0, 80)) &&
+      (!('consumerNo' in data) || isValidString(data.consumerNo, 0, 80)) &&
+      (!('registration' in data) || isValidString(data.registration, 0, 80)) &&
+      (!('agreement' in data) || isValidString(data.agreement, 0, 80)) &&
+      (!('installedDate' in data) || isValidString(data.installedDate, 0, 40)) &&
+      (!('siteInstalled' in data) || isValidString(data.siteInstalled, 0, 80)) &&
+      (!('dcrCreate' in data) || isValidString(data.dcrCreate, 0, 80)) &&
+      (!('netmetering' in data) || isValidString(data.netmetering, 0, 80)) &&
+      (!('subsidyApply' in data) || isValidString(data.subsidyApply, 0, 80)) &&
+      (!('subsidyDisbursal' in data) || isValidString(data.subsidyDisbursal, 0, 80)) &&
+      (!('plant' in data) || isValidString(data.plant, 0, 100)) &&
+      (!('reference' in data) || isValidString(data.reference, 0, 120)) &&
+      (!('plantType' in data) || isValidString(data.plantType, 0, 60)) &&
+      (!('solarPanel' in data) || isValidString(data.solarPanel, 0, 120)) &&
+      (!('inverter' in data) || isValidString(data.inverter, 0, 120)) &&
+      (!('battery' in data) || isValidString(data.battery, 0, 120)) &&
+      (!('plantKw' in data) || isValidString(data.plantKw, 0, 40)) &&
+      (!('categoryPlant' in data) || isValidString(data.categoryPlant, 0, 60)) &&
+      (!('pendingPay' in data) || isValidString(data.pendingPay, 0, 40)) &&
+      (!('firstPayAmt' in data) || isValidString(data.firstPayAmt, 0, 40)) &&
+      (!('firstPayDate' in data) || isValidString(data.firstPayDate, 0, 40)) &&
+      (!('secondPayAmt' in data) || isValidString(data.secondPayAmt, 0, 40)) &&
+      (!('secondPayDate' in data) || isValidString(data.secondPayDate, 0, 40)) &&
+      (!('party' in data) || isValidString(data.party, 0, 120)) &&
+      (!('vendor' in data) || isValidString(data.vendor, 0, 120)) &&
+      (!('dailyNotes' in data) || isValidString(data.dailyNotes, 0, 2000)) &&
+      data.createdAt is timestamp &&
+      data.updatedAt is timestamp;
+    }
+
+    // --- Collection Rules ---
+    match /settings/{settingId} {
+      allow get: if isValidId(settingId);
+      allow list: if isAdmin();
+      allow create: if isAdmin() && isValidId(settingId) && isValidSetting(incoming()) && incoming().updatedAt == request.time;
+      allow update: if isAdmin() && isValidId(settingId) && isValidSetting(incoming()) && incoming().updatedAt == request.time;
+      allow delete: if false;
+    }
+
+    match /branches/{branchId} {
+      allow get: if isValidId(branchId);
+      allow list: if true;
+      allow create: if isAdmin() && isValidId(branchId) && isValidBranch(incoming()) && incoming().updatedAt == request.time;
+      allow update: if isAdmin() && isValidId(branchId) && isValidBranch(incoming()) && incoming().updatedAt == request.time;
+      allow delete: if isAdmin() && isValidId(branchId);
+    }
+
+    match /projects/{projectId} {
+      allow get: if isValidId(projectId) && (existing().published == true || isAdmin());
+      allow list: if resource.data.published == true || isAdmin();
+      allow create: if isAdmin() && isValidId(projectId) && isValidProject(incoming()) && incoming().createdAt == request.time && incoming().updatedAt == request.time;
+      allow update: if isAdmin() && isValidId(projectId) && isValidProject(incoming()) && incoming().createdAt == existing().createdAt && incoming().updatedAt == request.time;
+      allow delete: if isAdmin() && isValidId(projectId);
+    }
+
+    match /products/{productId} {
+      allow get: if isValidId(productId) && (existing().published == true || isAdmin());
+      allow list: if resource.data.published == true || isAdmin();
+      allow create: if isAdmin() && isValidId(productId) && isValidProduct(incoming()) && incoming().updatedAt == request.time;
+      allow update: if isAdmin() && isValidId(productId) && isValidProduct(incoming()) && incoming().updatedAt == request.time;
+      allow delete: if isAdmin() && isValidId(productId);
+    }
+
+    match /reviews/{reviewId} {
+      allow get: if isValidId(reviewId) && (existing().published == true || isAdmin());
+      allow list: if resource.data.published == true || isAdmin();
+      allow create: if isAdmin() && isValidId(reviewId) && isValidReview(incoming()) && incoming().updatedAt == request.time;
+      allow update: if isAdmin() && isValidId(reviewId) && isValidReview(incoming()) && incoming().updatedAt == request.time;
+      allow delete: if isAdmin() && isValidId(reviewId);
+    }
+
+    match /faqs/{faqId} {
+      allow get: if isValidId(faqId) && (existing().published == true || isAdmin());
+      allow list: if resource.data.published == true || isAdmin();
+      allow create: if isAdmin() && isValidId(faqId) && isValidFaq(incoming()) && incoming().updatedAt == request.time;
+      allow update: if isAdmin() && isValidId(faqId) && isValidFaq(incoming()) && incoming().updatedAt == request.time;
+      allow delete: if isAdmin() && isValidId(faqId);
+    }
+
+    match /media/{mediaId} {
+      allow get: if isValidId(mediaId);
+      allow list: if true;
+      allow create: if isAdmin() && isValidId(mediaId) && isValidMedia(incoming()) && incoming().createdAt == request.time;
+      allow update: if isAdmin() && isValidId(mediaId) && isValidMedia(incoming()) && incoming().createdAt == existing().createdAt;
+      allow delete: if isAdmin() && isValidId(mediaId);
+    }
+
+    // Enquiries contain customer PII: public may ONLY create new 'New' leads, never read/update/delete.
+    match /enquiries/{enquiryId} {
+      allow get: if isAdmin() && isValidId(enquiryId);
+      allow list: if isAdmin();
+      allow create: if isValidId(enquiryId) &&
+        isValidEnquiry(incoming()) &&
+        incoming().status == 'New' &&
+        incoming().id == enquiryId &&
+        (!('internalNotes' in incoming()) || incoming().internalNotes == '') &&
+        (!('followUpHistory' in incoming()) || incoming().followUpHistory.size() == 0) &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time;
+      allow update: if isAdmin() && isValidId(enquiryId) && isValidEnquiry(incoming()) &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        incoming().diff(existing()).affectedKeys().hasOnly(['status', 'internalNotes', 'followUpHistory', 'updatedAt', 'branchPreference', 'requiredCapacity', 'systemType']);
+      allow delete: if isAdmin() && isValidId(enquiryId);
+    }
+
+    match /admin_users/{uid} {
+      allow get: if isAdmin() && isValidId(uid);
+      allow list: if isAdmin();
+      allow create: if isAdmin() && isValidId(uid) && isValidAdminUser(incoming()) && incoming().createdAt == request.time;
+      allow update: if isAdmin() && isValidId(uid) && isValidAdminUser(incoming()) && incoming().createdAt == existing().createdAt;
+      allow delete: if isAdmin() && isValidId(uid);
+    }
+
+    match /admin_logs/{logId} {
+      allow get: if isAdmin() && isValidId(logId);
+      allow list: if isAdmin();
+      allow create: if isAdmin() && isValidId(logId) && isValidAdminLog(incoming()) && incoming().actorUid == request.auth.uid && incoming().createdAt == request.time;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    match /site_trackers/{trackerId} {
+      allow get: if isAdmin() && isValidId(trackerId);
+      allow list: if isAdmin();
+      allow create: if isAdmin() && isValidId(trackerId) && isValidSiteTracker(incoming()) && incoming().id == trackerId && incoming().createdAt == request.time && incoming().updatedAt == request.time;
+      allow update: if isAdmin() && isValidId(trackerId) && isValidSiteTracker(incoming()) && incoming().id == existing().id && incoming().createdAt == existing().createdAt && incoming().updatedAt == request.time;
+      allow delete: if isAdmin() && isValidId(trackerId);
+    }
+  }
+}
