@@ -1,8 +1,10 @@
 import { ExternalLink, AlertTriangle, FileText, CheckCircle2 } from 'lucide-react';
 import { useSiteData } from '../context/SiteDataContext';
 import { SeoHead } from '../components/SeoHead';
+import { SafeImage } from '../components/SafeImage';
 import { SubsidyCalculator } from '../components/SubsidyCalculator';
 import { EnquiryForm } from '../components/EnquiryForm';
+import { SOLAR_MEDIA } from '../data/defaults';
 
 const SUBSIDY_STEPS = [
   { step: '01', title: 'Consumer Registration', desc: 'Register on the National PM Surya Ghar Portal using your consumer number and mobile OTP.' },
@@ -48,16 +50,26 @@ export function SubsidyPage() {
       />
 
       <section className="bg-[#0B1D39] text-white py-16 lg:py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <p className="text-xs font-semibold text-[#F97316]">
-            Residential Rooftop Solar Subsidy Guide
-          </p>
-          <h1 className="font-display text-3xl sm:text-5xl font-bold tracking-tight mt-2 max-w-4xl">
-            PM Surya Ghar Muft Bijli Yojana – Get Assistance Up To {fmt(combinedMax)}*
-          </h1>
-          <p className="text-slate-300 mt-4 text-base sm:text-lg max-w-3xl leading-relaxed">
-            Explore Eligible Central Government Subsidy and Uttar Pradesh State Subsidy for Residential Rooftop Solar Installations.
-          </p>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+          <div className="lg:col-span-7">
+            <p className="text-xs font-semibold text-[#F97316]">
+              Residential Rooftop Solar Subsidy Guide
+            </p>
+            <h1 className="font-display text-3xl sm:text-5xl font-bold tracking-tight mt-2">
+              PM Surya Ghar Muft Bijli Yojana – Get Assistance Up To {fmt(combinedMax)}*
+            </h1>
+            <p className="text-slate-300 mt-4 text-base sm:text-lg max-w-2xl leading-relaxed">
+              Explore Eligible Central Government Subsidy and Uttar Pradesh State Subsidy for Residential Rooftop Solar Installations.
+            </p>
+          </div>
+          <div className="lg:col-span-5 h-72 sm:h-80 rounded-2xl overflow-hidden border border-slate-700">
+            <SafeImage
+              src={SOLAR_MEDIA.heroRooftop}
+              alt="Residential rooftop solar installation eligible for PM Surya Ghar grid-connected evaluation"
+              loading="eager"
+              className="w-full h-full object-cover"
+            />
+          </div>
         </div>
       </section>
 
@@ -191,23 +203,43 @@ export function SubsidyPage() {
               </ul>
             </div>
 
-            <div className="lg:col-span-5 bg-white border border-slate-200 rounded-xl p-6 sm:p-8">
-              <h2 className="font-display text-xl font-bold text-[#0B1D39] mb-4">
-                Official Government Links
-              </h2>
-              <div className="space-y-3">
-                {OFFICIAL_LINKS.map((lnk) => (
-                  <a
-                    key={lnk.url}
-                    href={lnk.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-between p-3.5 rounded-lg border border-slate-200 hover:border-[#0B1D39] text-sm font-semibold text-[#0B1D39] transition-colors"
-                  >
-                    <span>{lnk.label}</span>
-                    <ExternalLink className="w-4 h-4 text-[#F97316]" aria-hidden="true" />
-                  </a>
-                ))}
+            <div className="lg:col-span-5 space-y-5">
+              <div className="border border-slate-200 rounded-xl overflow-hidden bg-white">
+                <div className="h-44 overflow-hidden">
+                  <SafeImage
+                    src={SOLAR_MEDIA.inverterAcdb}
+                    alt="Grid-tied solar inverter and net metering protection assembly for DISCOM inspection"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="p-4">
+                  <p className="text-xs font-semibold text-[#0B1D39]">
+                    DISCOM Net Metering &amp; Inspection Ready
+                  </p>
+                  <p className="text-xs text-slate-600 mt-1">
+                    Compliant DCR solar modules, ACDB/DCDB protection, and geotagged commissioning documentation.
+                  </p>
+                </div>
+              </div>
+
+              <div className="bg-white border border-slate-200 rounded-xl p-6 sm:p-8">
+                <h2 className="font-display text-xl font-bold text-[#0B1D39] mb-4">
+                  Official Government Links
+                </h2>
+                <div className="space-y-3">
+                  {OFFICIAL_LINKS.map((lnk) => (
+                    <a
+                      key={lnk.url}
+                      href={lnk.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-between p-3.5 rounded-lg border border-slate-200 hover:border-[#0B1D39] text-sm font-semibold text-[#0B1D39] transition-colors"
+                    >
+                      <span>{lnk.label}</span>
+                      <ExternalLink className="w-4 h-4 text-[#F97316]" aria-hidden="true" />
+                    </a>
+                  ))}
+                </div>
               </div>
             </div>
           </div>

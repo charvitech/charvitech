@@ -19,13 +19,25 @@ export function AboutPage() {
         ]}
       />
 
-      <section className="bg-[#0B1D39] text-white py-16 lg:py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="relative bg-[#0B1D39] text-white py-16 lg:py-24 overflow-hidden">
+        <div className="absolute inset-0">
+          <SafeImage
+            src={SOLAR_MEDIA.aboutEpcTeam}
+            alt="Charvi Solar EPC technicians installing rooftop solar mounting structure and PV modules"
+            loading="eager"
+            className="w-full h-full object-cover object-center"
+          />
+          <div
+            className="absolute inset-0 bg-gradient-to-r from-[#0B1D39]/95 via-[#0B1D39]/85 to-[#0B1D39]/55"
+            aria-hidden="true"
+          />
+        </div>
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <p className="text-xs font-semibold text-[#F97316]">Company Profile</p>
           <h1 className="font-display text-3xl sm:text-5xl font-bold tracking-tight mt-2 max-w-3xl">
             {siteSettings.companyName}
           </h1>
-          <p className="text-slate-300 mt-4 max-w-2xl text-base sm:text-lg leading-relaxed">
+          <p className="text-slate-200 mt-4 max-w-2xl text-base sm:text-lg leading-relaxed">
             {siteSettings.tagline} — Engineering reliable Residential, Commercial, and Industrial solar power plants across Uttar Pradesh.
           </p>
         </div>
@@ -52,18 +64,79 @@ export function AboutPage() {
         </div>
       </section>
 
-      {/* Vision & Mission */}
+      {/* Vision & Mission + Engineering Craftsmanship */}
       <section className="py-16 bg-slate-50 border-y border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="bg-white border border-slate-200 rounded-xl p-8">
-            <p className="text-xs font-semibold text-[#F97316]">01. Vision</p>
-            <h3 className="font-display text-2xl font-bold text-[#0B1D39] mt-2">Our Vision</h3>
-            <p className="text-slate-600 mt-3 leading-relaxed">{siteSettings.vision}</p>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="bg-white border border-slate-200 rounded-xl p-8">
+              <p className="text-xs font-semibold text-[#F97316]">01. Vision</p>
+              <h3 className="font-display text-2xl font-bold text-[#0B1D39] mt-2">Our Vision</h3>
+              <p className="text-slate-600 mt-3 leading-relaxed">{siteSettings.vision}</p>
+            </div>
+            <div className="bg-white border border-slate-200 rounded-xl p-8">
+              <p className="text-xs font-semibold text-[#F97316]">02. Mission</p>
+              <h3 className="font-display text-2xl font-bold text-[#0B1D39] mt-2">Our Mission</h3>
+              <p className="text-slate-600 mt-3 leading-relaxed">{siteSettings.mission}</p>
+            </div>
           </div>
-          <div className="bg-white border border-slate-200 rounded-xl p-8">
-            <p className="text-xs font-semibold text-[#F97316]">02. Mission</p>
-            <h3 className="font-display text-2xl font-bold text-[#0B1D39] mt-2">Our Mission</h3>
-            <p className="text-slate-600 mt-3 leading-relaxed">{siteSettings.mission}</p>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+              <div className="h-52 overflow-hidden">
+                <SafeImage
+                  src={SOLAR_MEDIA.hdgiStructure}
+                  alt="Elevated hot-dip galvanized iron HDGI rooftop solar mounting structure"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="p-5">
+                <p className="text-xs font-semibold text-[#F97316]">Structural Engineering</p>
+                <h3 className="font-display text-base font-bold text-[#0B1D39] mt-1">
+                  Elevated HDGI Structures
+                </h3>
+                <p className="text-xs text-slate-600 mt-1.5 leading-relaxed">
+                  High-zinc galvanized columns with SS304 hardware and waterproofed base anchoring keeping terraces usable.
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+              <div className="h-52 overflow-hidden">
+                <SafeImage
+                  src={SOLAR_MEDIA.topconPanels}
+                  alt="High-efficiency Mono-PERC and N-Type TOPCon solar modules"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="p-5">
+                <p className="text-xs font-semibold text-[#F97316]">Module Quality</p>
+                <h3 className="font-display text-base font-bold text-[#0B1D39] mt-1">
+                  Mono-PERC &amp; N-Type TOPCon
+                </h3>
+                <p className="text-xs text-slate-600 mt-1.5 leading-relaxed">
+                  Tier-1 half-cut PV modules selected for high low-light generation and long-term thermal stability.
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+              <div className="h-52 overflow-hidden">
+                <SafeImage
+                  src={SOLAR_MEDIA.inverterAcdb}
+                  alt="Solar inverter with ACDB, DCDB surge protection and net metering setup"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="p-5">
+                <p className="text-xs font-semibold text-[#F97316]">Safety &amp; Protection</p>
+                <h3 className="font-display text-base font-bold text-[#0B1D39] mt-1">
+                  ACDB, DCDB &amp; Earthing
+                </h3>
+                <p className="text-xs text-slate-600 mt-1.5 leading-relaxed">
+                  BIS-compliant inverters, Type-II surge protection, proper cable dressing, and dedicated copper earthing.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -74,9 +147,9 @@ export function AboutPage() {
           <div className="border border-slate-200 rounded-2xl p-8 sm:p-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             <div className="lg:col-span-4 h-72 rounded-xl overflow-hidden border border-slate-200">
               <SafeImage
-                src={SOLAR_MEDIA.inverterAcdb}
-                alt="Solar inverter and electrical protection architecture overseen by Charvi Solar"
-                className="w-full h-full object-cover"
+                src={SOLAR_MEDIA.leadershipSolar}
+                alt="Solar EPC engineering director inspecting rooftop solar site plans"
+                className="w-full h-full object-cover object-top"
               />
             </div>
             <div className="lg:col-span-8 space-y-4">

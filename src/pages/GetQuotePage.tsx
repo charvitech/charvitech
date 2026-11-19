@@ -1,9 +1,11 @@
 import { useSearchParams } from 'react-router-dom';
 import { ShieldCheck, Phone } from 'lucide-react';
 import { SeoHead } from '../components/SeoHead';
+import { SafeImage } from '../components/SafeImage';
 import { EnquiryForm } from '../components/EnquiryForm';
 import { SolarCalculator } from '../components/SolarCalculator';
 import { useSiteData } from '../context/SiteDataContext';
+import { SOLAR_MEDIA } from '../data/defaults';
 import { PropertyCategory, SolarSystemType } from '../types/solar';
 
 export function GetQuotePage() {
@@ -62,16 +64,25 @@ export function GetQuotePage() {
           </div>
 
           <div className="lg:col-span-5 space-y-6">
-            <div className="border border-slate-200 rounded-xl p-6 bg-white space-y-4">
-              <div className="flex items-center gap-2 text-[#15803D] font-semibold text-xs">
-                <ShieldCheck className="w-4 h-4" aria-hidden="true" />
-                <span>What Happens After You Submit</span>
+            <div className="border border-slate-200 rounded-xl overflow-hidden bg-white">
+              <div className="h-52 overflow-hidden">
+                <SafeImage
+                  src={SOLAR_MEDIA.engineersTeam}
+                  alt="Charvi Solar engineers conducting rooftop solar inspection and sizing survey"
+                  className="w-full h-full object-cover"
+                />
               </div>
-              <ol className="space-y-3 text-sm text-slate-600 list-decimal pl-5">
-                <li>Your enquiry receives a unique reference ID immediately.</li>
-                <li>Our Meerut or Aligarh engineer contacts you to confirm roof dimensions and sanctioned load.</li>
-                <li>We schedule a physical site survey before issuing your final itemized EPC quotation.</li>
-              </ol>
+              <div className="p-6 space-y-4">
+                <div className="flex items-center gap-2 text-[#15803D] font-semibold text-xs">
+                  <ShieldCheck className="w-4 h-4" aria-hidden="true" />
+                  <span>What Happens After You Submit</span>
+                </div>
+                <ol className="space-y-3 text-sm text-slate-600 list-decimal pl-5">
+                  <li>Your enquiry receives a unique reference ID immediately.</li>
+                  <li>Our Meerut or Aligarh engineer contacts you to confirm roof dimensions and sanctioned load.</li>
+                  <li>We schedule a physical site survey before issuing your final itemized EPC quotation.</li>
+                </ol>
+              </div>
             </div>
 
             <div className="border border-slate-200 rounded-xl p-6 bg-slate-50 space-y-3">

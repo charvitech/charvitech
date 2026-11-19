@@ -4,6 +4,7 @@ import { SeoHead } from '../components/SeoHead';
 import { SafeImage } from '../components/SafeImage';
 import { BranchMap } from '../components/BranchMap';
 import { EnquiryForm } from '../components/EnquiryForm';
+import { SOLAR_MEDIA } from '../data/defaults';
 
 export function ContactPage() {
   const { branches, siteSettings } = useSiteData();
@@ -19,13 +20,25 @@ export function ContactPage() {
         ]}
       />
 
-      <section className="bg-[#0B1D39] text-white py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="relative bg-[#0B1D39] text-white py-16 lg:py-20 overflow-hidden">
+        <div className="absolute inset-0">
+          <SafeImage
+            src={SOLAR_MEDIA.aboutEpcTeam}
+            alt="Charvi Technologies and Services solar engineering team"
+            loading="eager"
+            className="w-full h-full object-cover object-center"
+          />
+          <div
+            className="absolute inset-0 bg-gradient-to-r from-[#0B1D39]/95 via-[#0B1D39]/85 to-[#0B1D39]/65"
+            aria-hidden="true"
+          />
+        </div>
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <p className="text-xs font-semibold text-[#F97316]">Regional Offices &amp; Support Desk</p>
           <h1 className="font-display text-3xl sm:text-5xl font-bold tracking-tight mt-2">
             Contact {siteSettings.companyName}
           </h1>
-          <p className="text-slate-300 mt-3 max-w-2xl text-base">
+          <p className="text-slate-200 mt-3 max-w-2xl text-base">
             Connect directly with Chandra Prakash and our Meerut or Aligarh engineering branches for site surveys, solar quotations, and subsidy assistance.
           </p>
           <div className="mt-6 flex flex-wrap items-center gap-6 text-sm">
@@ -40,7 +53,7 @@ export function ContactPage() {
               href={siteSettings.googleBusinessUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-slate-300 hover:text-white"
+              className="inline-flex items-center gap-1.5 text-slate-200 hover:text-white"
             >
               <span>Google Business Profile</span>
               <ExternalLink className="w-3.5 h-3.5" aria-hidden="true" />
@@ -49,7 +62,7 @@ export function ContactPage() {
               href={siteSettings.linkedinUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-slate-300 hover:text-white"
+              className="inline-flex items-center gap-1.5 text-slate-200 hover:text-white"
             >
               <span>LinkedIn</span>
               <ExternalLink className="w-3.5 h-3.5" aria-hidden="true" />

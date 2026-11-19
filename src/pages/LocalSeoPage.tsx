@@ -2,8 +2,10 @@ import { Link } from 'react-router-dom';
 import { Phone, MapPin, CheckCircle2, AlertCircle, ArrowRight } from 'lucide-react';
 import { useSiteData } from '../context/SiteDataContext';
 import { SeoHead } from '../components/SeoHead';
+import { SafeImage } from '../components/SafeImage';
 import { BranchMap } from '../components/BranchMap';
 import { EnquiryForm } from '../components/EnquiryForm';
+import { SOLAR_MEDIA } from '../data/defaults';
 
 export function LocalSeoPage({ citySlug }: { citySlug: 'meerut' | 'aligarh' }) {
   const { branches } = useSiteData();
@@ -38,31 +40,44 @@ export function LocalSeoPage({ citySlug }: { citySlug: 'meerut' | 'aligarh' }) {
       />
 
       <section className="bg-[#0B1D39] text-white py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <p className="text-xs font-semibold text-[#F97316]">
-            Local Solar EPC Desk · {cityName}, Uttar Pradesh
-          </p>
-          <h1 className="font-display text-3xl sm:text-5xl font-bold tracking-tight mt-2 max-w-4xl">
-            {branch?.localSeoHeadline || `Solar Company & Rooftop EPC in ${cityName}`}
-          </h1>
-          <p className="text-slate-300 mt-4 max-w-2xl text-base leading-relaxed">
-            {branch?.localSeoSummary}
-          </p>
-          <div className="mt-7 flex flex-wrap gap-3">
-            <a
-              href={`tel:+91${branch?.phone}`}
-              className="px-5 py-3 text-sm font-semibold bg-[#F97316] hover:bg-[#EA580C] text-white rounded-lg inline-flex items-center gap-2 tabular-nums"
-            >
-              <Phone className="w-4 h-4" aria-hidden="true" />
-              <span>Call {cityName} Desk: {branch?.phone}</span>
-            </a>
-            <Link
-              to="/pm-surya-ghar-subsidy"
-              className="px-5 py-3 text-sm font-semibold border border-white/30 hover:bg-white/10 text-white rounded-lg inline-flex items-center gap-2"
-            >
-              <span>Check UP Solar Subsidy</span>
-              <ArrowRight className="w-4 h-4" aria-hidden="true" />
-            </Link>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+          <div className="lg:col-span-7">
+            <p className="text-xs font-semibold text-[#F97316]">
+              Local Solar EPC Desk · {cityName}, Uttar Pradesh
+            </p>
+            <h1 className="font-display text-3xl sm:text-5xl font-bold tracking-tight mt-2">
+              {branch?.localSeoHeadline || `Solar Company & Rooftop EPC in ${cityName}`}
+            </h1>
+            <p className="text-slate-300 mt-4 max-w-2xl text-base leading-relaxed">
+              {branch?.localSeoSummary}
+            </p>
+            <div className="mt-7 flex flex-wrap gap-3">
+              <a
+                href={`tel:+91${branch?.phone}`}
+                className="px-5 py-3 text-sm font-semibold bg-[#F97316] hover:bg-[#EA580C] text-white rounded-lg inline-flex items-center gap-2 tabular-nums"
+              >
+                <Phone className="w-4 h-4" aria-hidden="true" />
+                <span>Call {cityName} Desk: {branch?.phone}</span>
+              </a>
+              <Link
+                to="/pm-surya-ghar-subsidy"
+                className="px-5 py-3 text-sm font-semibold border border-white/30 hover:bg-white/10 text-white rounded-lg inline-flex items-center gap-2"
+              >
+                <span>Check UP Solar Subsidy</span>
+                <ArrowRight className="w-4 h-4" aria-hidden="true" />
+              </Link>
+            </div>
+          </div>
+          <div className="lg:col-span-5 h-72 sm:h-80 rounded-2xl overflow-hidden border border-slate-700">
+            <SafeImage
+              src={
+                branch?.photoUrl ||
+                (citySlug === 'meerut' ? SOLAR_MEDIA.commercialBuilding : SOLAR_MEDIA.heroRooftop)
+              }
+              alt={`Charvi Solar rooftop solar installation services in ${cityName}, Uttar Pradesh`}
+              loading="eager"
+              className="w-full h-full object-cover"
+            />
           </div>
         </div>
       </section>

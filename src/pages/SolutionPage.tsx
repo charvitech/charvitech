@@ -38,8 +38,8 @@ const SOLUTIONS: Record<SolutionPageSlug, SolutionConfig> = {
     subtitle: 'End-to-end engineering, procurement, installation, and commissioning across Meerut, Aligarh & UP.',
     seoDescription:
       'Complete Residential, Commercial, and Industrial solar EPC services by Charvi Technologies and Services across Meerut and Aligarh.',
-    image: SOLAR_MEDIA.engineersTeam,
-    imageAlt: 'Indian solar engineers conducting rooftop PV commissioning',
+    image: SOLAR_MEDIA.aboutEpcTeam,
+    imageAlt: 'Indian solar EPC technicians assembling rooftop mounting structure and PV panels',
     overview:
       'Charvi Technologies and Services executes complete rooftop solar installations from shadow analysis and structural fabrication to electrical protection and DISCOM net metering coordination.',
     benefits: [
@@ -194,7 +194,7 @@ const SOLUTIONS: Record<SolutionPageSlug, SolutionConfig> = {
     subtitle: 'Independent battery-backed solar power designed for areas without grid supply or frequent outages.',
     seoDescription:
       'Off-Grid standalone solar system with battery bank in Meerut and Aligarh by Charvi Technologies and Services.',
-    image: SOLAR_MEDIA.hybridHome,
+    image: SOLAR_MEDIA.offgridBattery,
     imageAlt: 'Standalone off-grid battery bank and solar inverter installation',
     overview:
       'An Off-Grid solar system operates completely independently of the utility grid. Solar energy charges a dedicated battery bank through an MPPT charge controller/inverter and runs your appliances day and night without exporting to any utility meter.',
@@ -365,7 +365,7 @@ export function SolutionPage({ slug }: { slug: SolutionPageSlug }) {
             </div>
           </div>
 
-          <div className="lg:col-span-5">
+          <div className="lg:col-span-5 space-y-6">
             <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 space-y-4">
               <h3 className="font-display text-lg font-bold text-[#0B1D39]">
                 Technical Overview
@@ -386,6 +386,30 @@ export function SolutionPage({ slug }: { slug: SolutionPageSlug }) {
                   <span>Check PM Surya Ghar Subsidy Rules</span>
                   <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
                 </Link>
+              </div>
+            </div>
+
+            <div className="border border-slate-200 rounded-2xl overflow-hidden bg-white">
+              <div className="h-52 overflow-hidden">
+                <SafeImage
+                  src={
+                    slug === 'industrial' || slug === 'residential'
+                      ? SOLAR_MEDIA.hdgiStructure
+                      : SOLAR_MEDIA.topconPanels
+                  }
+                  alt={
+                    slug === 'industrial' || slug === 'residential'
+                      ? 'Hot-dip galvanized iron HDGI elevated rooftop solar structure'
+                      : 'High-efficiency TOPCon monocrystalline solar PV modules'
+                  }
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="p-4">
+                <p className="text-xs font-semibold text-[#F97316]">Charvi EPC Build Standard</p>
+                <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                  Every plant combines Tier-1 PV modules, HDGI mounting structures, and neat ACDB/DCDB surge protection.
+                </p>
               </div>
             </div>
           </div>

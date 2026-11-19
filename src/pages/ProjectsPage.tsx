@@ -4,6 +4,7 @@ import { Search, Share2, X, ArrowLeft, PlayCircle, CheckCircle2 } from 'lucide-r
 import { useSiteData } from '../context/SiteDataContext';
 import { SeoHead } from '../components/SeoHead';
 import { SafeImage } from '../components/SafeImage';
+import { SOLAR_MEDIA } from '../data/defaults';
 
 const FILTER_OPTIONS = ['All', 'Residential', 'Commercial', 'Industrial', 'On-Grid', 'Off-Grid', 'Hybrid'];
 
@@ -284,8 +285,15 @@ export function ProjectsPage() {
         ]}
       />
 
-      <section className="bg-[#0B1D39] text-white py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="relative bg-[#0B1D39] text-white py-16 overflow-hidden">
+        <div className="absolute inset-0 opacity-20">
+          <SafeImage
+            src={SOLAR_MEDIA.aboutEpcTeam}
+            alt="Charvi Solar rooftop EPC engineering team"
+            className="w-full h-full object-cover"
+          />
+        </div>
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <p className="text-xs font-semibold text-[#F97316]">Installation Portfolio</p>
           <h1 className="font-display text-3xl sm:text-5xl font-bold tracking-tight mt-2">
             Our Solar Projects
@@ -381,32 +389,73 @@ export function ProjectsPage() {
               ))}
             </div>
           ) : (
-            <div className="border border-slate-200 rounded-2xl p-10 bg-slate-50 text-center max-w-2xl mx-auto">
-              <h2 className="font-display text-xl font-bold text-[#0B1D39]">
-                No Published Projects Match This Filter Yet
-              </h2>
-              <p className="text-sm text-slate-600 mt-2 leading-relaxed">
-                Charvi Technologies and Services publishes only real, verified installation photographs uploaded through our administrator gallery. Request a consultation to view local site references in Meerut or Aligarh.
-              </p>
-              <div className="mt-6 flex flex-wrap justify-center gap-3">
-                <Link
-                  to="/get-quote"
-                  className="px-5 py-2.5 text-xs font-semibold bg-[#F97316] text-white rounded-lg"
-                >
-                  Request Free Site Survey
-                </Link>
-                {filter !== 'All' && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setFilter('All');
-                      setSearch('');
-                    }}
-                    className="px-5 py-2.5 text-xs font-semibold border border-slate-300 text-[#0B1D39] rounded-lg cursor-pointer"
+            <div className="space-y-10">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {[
+                  {
+                    img: SOLAR_MEDIA.heroRooftop,
+                    tag: 'Residential Rooftop EPC',
+                    title: 'Elevated Home Terrace Systems',
+                    desc: 'Clean elevated HDGI structures keeping terrace space open for family use across Meerut and Aligarh.',
+                  },
+                  {
+                    img: SOLAR_MEDIA.commercialBuilding,
+                    tag: 'Commercial Solar EPC',
+                    title: 'Offices, Showrooms & Schools',
+                    desc: 'Daytime load matching and three-phase string inverters engineered for commercial power savings.',
+                  },
+                  {
+                    img: SOLAR_MEDIA.industrialFactory,
+                    tag: 'Industrial Shed Arrays',
+                    title: 'High-Capacity Factory Roofs',
+                    desc: 'Non-penetrating rail clamping, DC/AC SPD safety, and multi-MPPT string design for industrial loads.',
+                  },
+                ].map((item) => (
+                  <div
+                    key={item.title}
+                    className="border border-slate-200 rounded-xl overflow-hidden bg-white flex flex-col"
                   >
-                    Reset Filters
-                  </button>
-                )}
+                    <div className="h-48 overflow-hidden">
+                      <SafeImage src={item.img} alt={item.title} />
+                    </div>
+                    <div className="p-5">
+                      <p className="text-xs font-semibold text-[#F97316]">{item.tag}</p>
+                      <h3 className="font-display text-base font-bold text-[#0B1D39] mt-1">
+                        {item.title}
+                      </h3>
+                      <p className="text-xs text-slate-600 mt-1.5 leading-relaxed">{item.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="border border-slate-200 rounded-2xl p-8 bg-slate-50 text-center max-w-2xl mx-auto">
+                <h2 className="font-display text-xl font-bold text-[#0B1D39]">
+                  Verified Customer Gallery Publishing Soon
+                </h2>
+                <p className="text-sm text-slate-600 mt-2 leading-relaxed">
+                  Charvi Technologies and Services publishes only real, verified installation photographs uploaded through our administrator gallery. Request a consultation to view local site references in Meerut or Aligarh.
+                </p>
+                <div className="mt-6 flex flex-wrap justify-center gap-3">
+                  <Link
+                    to="/get-quote"
+                    className="px-5 py-2.5 text-xs font-semibold bg-[#F97316] text-white rounded-lg"
+                  >
+                    Request Free Site Survey
+                  </Link>
+                  {filter !== 'All' && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFilter('All');
+                        setSearch('');
+                      }}
+                      className="px-5 py-2.5 text-xs font-semibold border border-slate-300 text-[#0B1D39] rounded-lg cursor-pointer"
+                    >
+                      Reset Filters
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           )}

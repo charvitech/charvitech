@@ -4,6 +4,7 @@ import { FileDown, ArrowRight } from 'lucide-react';
 import { useSiteData } from '../context/SiteDataContext';
 import { SeoHead } from '../components/SeoHead';
 import { SafeImage } from '../components/SafeImage';
+import { SOLAR_MEDIA } from '../data/defaults';
 
 const PRODUCT_CATEGORIES = [
   'All',
@@ -47,8 +48,15 @@ export function ProductsPage() {
         ]}
       />
 
-      <section className="bg-[#0B1D39] text-white py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="relative bg-[#0B1D39] text-white py-16 overflow-hidden">
+        <div className="absolute inset-0 opacity-20">
+          <SafeImage
+            src={SOLAR_MEDIA.topconPanels}
+            alt="High-efficiency N-Type TOPCon solar modules"
+            className="w-full h-full object-cover"
+          />
+        </div>
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <p className="text-xs font-semibold text-[#F97316]">Component Ecosystem</p>
           <h1 className="font-display text-3xl sm:text-5xl font-bold tracking-tight mt-2">
             Solar Products &amp; Brands

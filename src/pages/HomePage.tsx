@@ -219,22 +219,22 @@ export function HomePage() {
             <div className="lg:col-span-6 grid grid-cols-2 gap-4">
               <div className="col-span-2 h-60 sm:h-72 rounded-xl overflow-hidden border border-slate-200">
                 <SafeImage
+                  src={SOLAR_MEDIA.aboutEpcTeam}
+                  alt="Indian solar EPC team installing HDGI rooftop mounting structure and PV modules"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="h-44 rounded-xl overflow-hidden border border-slate-200">
+                <SafeImage
+                  src={SOLAR_MEDIA.hdgiStructure}
+                  alt="Elevated hot-dip galvanized iron solar mounting structure on concrete terrace"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="h-44 rounded-xl overflow-hidden border border-slate-200">
+                <SafeImage
                   src={SOLAR_MEDIA.engineersTeam}
-                  alt="Indian solar engineers inspecting rooftop solar PV array and DC cabling"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="h-44 rounded-xl overflow-hidden border border-slate-200">
-                <SafeImage
-                  src={SOLAR_MEDIA.inverterAcdb}
-                  alt="Solar inverter with ACDB, DCDB, earthing and digital net meter"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="h-44 rounded-xl overflow-hidden border border-slate-200">
-                <SafeImage
-                  src={SOLAR_MEDIA.hybridHome}
-                  alt="Indian home with rooftop solar and hybrid battery backup enclosure"
+                  alt="Charvi Solar engineers inspecting solar array and DC cabling"
                   className="w-full h-full object-cover"
                 />
               </div>
@@ -341,41 +341,68 @@ export function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
             <Link
               to="/on-grid-solar"
-              className="bg-white border border-slate-200 rounded-xl p-6 hover:border-[#0B1D39] transition-colors"
+              className="group bg-white border border-slate-200 rounded-xl overflow-hidden hover:border-[#0B1D39] transition-colors flex flex-col"
             >
-              <p className="text-xs text-slate-500">Net Metering · Zero Battery</p>
-              <h3 className="font-display text-lg font-bold text-[#0B1D39] mt-1">
-                On-Grid Solar System
-              </h3>
-              <p className="text-sm text-slate-600 mt-2">
-                Export surplus daytime generation to the utility grid for maximum electricity bill savings.
-              </p>
+              <div className="h-44 overflow-hidden">
+                <SafeImage
+                  src={SOLAR_MEDIA.inverterAcdb}
+                  alt="On-grid solar string inverter with ACDB, DCDB and bi-directional net meter"
+                  className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-300"
+                />
+              </div>
+              <div className="p-6">
+                <p className="text-xs text-slate-500">Net Metering · Zero Battery</p>
+                <h3 className="font-display text-lg font-bold text-[#0B1D39] mt-1">
+                  On-Grid Solar System
+                </h3>
+                <p className="text-sm text-slate-600 mt-2">
+                  Export surplus daytime generation to the utility grid for maximum electricity bill savings.
+                </p>
+              </div>
             </Link>
 
             <Link
               to="/hybrid-solar"
-              className="bg-white border border-slate-200 rounded-xl p-6 hover:border-[#0B1D39] transition-colors"
+              className="group bg-white border border-slate-200 rounded-xl overflow-hidden hover:border-[#0B1D39] transition-colors flex flex-col"
             >
-              <p className="text-xs text-slate-500">Grid + Battery Backup</p>
-              <h3 className="font-display text-lg font-bold text-[#0B1D39] mt-1">
-                Hybrid Solar System
-              </h3>
-              <p className="text-sm text-slate-600 mt-2">
-                Grid-connected generation paired with lithium or tubular battery storage for power-cut resilience.
-              </p>
+              <div className="h-44 overflow-hidden">
+                <SafeImage
+                  src={SOLAR_MEDIA.hybridHome}
+                  alt="Hybrid grid-interactive solar inverter and rooftop PV home setup"
+                  className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-300"
+                />
+              </div>
+              <div className="p-6">
+                <p className="text-xs text-slate-500">Grid + Battery Backup</p>
+                <h3 className="font-display text-lg font-bold text-[#0B1D39] mt-1">
+                  Hybrid Solar System
+                </h3>
+                <p className="text-sm text-slate-600 mt-2">
+                  Grid-connected generation paired with lithium or tubular battery storage for power-cut resilience.
+                </p>
+              </div>
             </Link>
 
             <Link
               to="/off-grid-solar"
-              className="bg-white border border-slate-200 rounded-xl p-6 hover:border-[#0B1D39] transition-colors"
+              className="group bg-white border border-slate-200 rounded-xl overflow-hidden hover:border-[#0B1D39] transition-colors flex flex-col"
             >
-              <p className="text-xs text-slate-500">Standalone · Battery-Based</p>
-              <h3 className="font-display text-lg font-bold text-[#0B1D39] mt-1">
-                Off-Grid Solar System
-              </h3>
-              <p className="text-sm text-slate-600 mt-2">
-                Independent solar power and battery storage for farms, remote sites, and erratic grid areas.
-              </p>
+              <div className="h-44 overflow-hidden">
+                <SafeImage
+                  src={SOLAR_MEDIA.offgridBattery}
+                  alt="Standalone off-grid solar battery bank and charge controller installation"
+                  className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-300"
+                />
+              </div>
+              <div className="p-6">
+                <p className="text-xs text-slate-500">Standalone · Battery-Based</p>
+                <h3 className="font-display text-lg font-bold text-[#0B1D39] mt-1">
+                  Off-Grid Solar System
+                </h3>
+                <p className="text-sm text-slate-600 mt-2">
+                  Independent solar power and battery storage for farms, remote sites, and erratic grid areas.
+                </p>
+              </div>
             </Link>
           </div>
         </div>
@@ -507,21 +534,71 @@ export function HomePage() {
               ))}
             </div>
           ) : (
-            <div className="border border-slate-200 rounded-xl p-8 bg-slate-50 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-              <div className="max-w-2xl">
-                <h3 className="font-display text-lg font-bold text-[#0B1D39]">
-                  Verified Charvi Installation Photographs Published Directly by Our Engineering Team
-                </h3>
-                <p className="text-sm text-slate-600 mt-2 leading-relaxed">
-                  We never display fabricated project photos. Verified installation case studies, site photos, and customer-approved project videos uploaded via our admin gallery appear here. Contact our Meerut or Aligarh office to inspect recent local installations near you.
-                </p>
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="border border-slate-200 rounded-xl overflow-hidden bg-white">
+                  <div className="h-48 overflow-hidden">
+                    <SafeImage
+                      src={SOLAR_MEDIA.topconPanels}
+                      alt="Mono-PERC and N-Type TOPCon rooftop solar panel array"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="p-4">
+                    <p className="text-xs text-slate-500">Module Architecture</p>
+                    <h3 className="font-display text-base font-bold text-[#0B1D39] mt-0.5">
+                      High-Efficiency N-Type TOPCon Arrays
+                    </h3>
+                  </div>
+                </div>
+                <div className="border border-slate-200 rounded-xl overflow-hidden bg-white">
+                  <div className="h-48 overflow-hidden">
+                    <SafeImage
+                      src={SOLAR_MEDIA.hdgiStructure}
+                      alt="Elevated HDGI steel mounting structure preserving usable concrete terrace"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="p-4">
+                    <p className="text-xs text-slate-500">Structural Standards</p>
+                    <h3 className="font-display text-base font-bold text-[#0B1D39] mt-0.5">
+                      Elevated Hot-Dip Galvanized Mounting
+                    </h3>
+                  </div>
+                </div>
+                <div className="border border-slate-200 rounded-xl overflow-hidden bg-white">
+                  <div className="h-48 overflow-hidden">
+                    <SafeImage
+                      src={SOLAR_MEDIA.inverterAcdb}
+                      alt="Solar inverter and ACDB DCDB safety distribution setup"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="p-4">
+                    <p className="text-xs text-slate-500">Protection &amp; Grid Sync</p>
+                    <h3 className="font-display text-base font-bold text-[#0B1D39] mt-0.5">
+                      ACDB/DCDB &amp; Net Metering Commissioning
+                    </h3>
+                  </div>
+                </div>
               </div>
-              <Link
-                to="/contact"
-                className="px-5 py-2.5 text-xs font-semibold bg-[#0B1D39] text-white rounded-lg hover:bg-[#132B52] whitespace-nowrap shrink-0"
-              >
-                Schedule a Site Reference
-              </Link>
+
+              <div className="border border-slate-200 rounded-xl p-8 bg-slate-50 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                <div className="max-w-2xl">
+                  <h3 className="font-display text-lg font-bold text-[#0B1D39]">
+                    Verified Charvi Installation Photographs Published Directly by Our Engineering Team
+                  </h3>
+                  <p className="text-sm text-slate-600 mt-2 leading-relaxed">
+                    We never display fabricated customer project photos. Verified installation case studies, site photos, and customer-approved project videos uploaded via our admin gallery appear here. Contact our Meerut or Aligarh office to inspect recent local installations near you.
+                  </p>
+                </div>
+                <Link
+                  to="/contact"
+                  className="px-5 py-2.5 text-xs font-semibold bg-[#0B1D39] text-white rounded-lg hover:bg-[#132B52] whitespace-nowrap shrink-0"
+                >
+                  Schedule a Site Reference
+                </Link>
+              </div>
             </div>
           )}
         </div>

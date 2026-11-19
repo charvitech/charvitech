@@ -8,13 +8,44 @@ import {
   SubsidySettings,
 } from '../types/solar';
 
+import heroRooftopImg from '../assets/images/hero_indian_rooftop_solar_1794555962208.jpg';
+import commercialBuildingImg from '../assets/images/commercial_indian_building_solar_1794555963177.jpg';
+import industrialFactoryImg from '../assets/images/industrial_indian_factory_solar_1794555963967.jpg';
+import engineersTeamImg from '../assets/images/indian_solar_engineers_team_1794555964763.jpg';
+import inverterAcdbImg from '../assets/images/solar_inverter_acdb_setup_1794555963914.jpg';
+import hybridHomeImg from '../assets/images/indian_hybrid_home_solar_1794555964406.jpg';
+import leadershipSolarImg from '../assets/images/leadership_indian_solar_engineer_1795066379463.jpg';
+import aboutEpcTeamImg from '../assets/images/about_epc_solar_installation_1795066380019.jpg';
+import offgridBatteryImg from '../assets/images/offgrid_solar_battery_setup_1795066379992.jpg';
+import topconPanelsImg from '../assets/images/topcon_solar_panels_closeup_1795066381632.jpg';
+import hdgiStructureImg from '../assets/images/hdgi_mounting_structure_detail_1795066381641.jpg';
+
 export const SOLAR_MEDIA = {
-  heroRooftop: '/src/assets/images/hero_indian_rooftop_solar_1794555962208.jpg',
-  commercialBuilding: '/src/assets/images/commercial_indian_building_solar_1794555963177.jpg',
-  industrialFactory: '/src/assets/images/industrial_indian_factory_solar_1794555963967.jpg',
-  engineersTeam: '/src/assets/images/indian_solar_engineers_team_1794555964763.jpg',
-  inverterAcdb: '/src/assets/images/solar_inverter_acdb_setup_1794555963914.jpg',
-  hybridHome: '/src/assets/images/indian_hybrid_home_solar_1794555964406.jpg',
+  heroRooftop: heroRooftopImg,
+  commercialBuilding: commercialBuildingImg,
+  industrialFactory: industrialFactoryImg,
+  engineersTeam: engineersTeamImg,
+  inverterAcdb: inverterAcdbImg,
+  hybridHome: hybridHomeImg,
+  leadershipSolar: leadershipSolarImg,
+  aboutEpcTeam: aboutEpcTeamImg,
+  offgridBattery: offgridBatteryImg,
+  topconPanels: topconPanelsImg,
+  hdgiStructure: hdgiStructureImg,
+};
+
+export const LEGACY_MEDIA_MAP: Record<string, string> = {
+  '/src/assets/images/hero_indian_rooftop_solar_1794555962208.jpg': heroRooftopImg,
+  '/src/assets/images/commercial_indian_building_solar_1794555963177.jpg': commercialBuildingImg,
+  '/src/assets/images/industrial_indian_factory_solar_1794555963967.jpg': industrialFactoryImg,
+  '/src/assets/images/indian_solar_engineers_team_1794555964763.jpg': engineersTeamImg,
+  '/src/assets/images/solar_inverter_acdb_setup_1794555963914.jpg': inverterAcdbImg,
+  '/src/assets/images/indian_hybrid_home_solar_1794555964406.jpg': hybridHomeImg,
+  '/src/assets/images/leadership_indian_solar_engineer_1795066379463.jpg': leadershipSolarImg,
+  '/src/assets/images/about_epc_solar_installation_1795066380019.jpg': aboutEpcTeamImg,
+  '/src/assets/images/offgrid_solar_battery_setup_1795066379992.jpg': offgridBatteryImg,
+  '/src/assets/images/topcon_solar_panels_closeup_1795066381632.jpg': topconPanelsImg,
+  '/src/assets/images/hdgi_mounting_structure_detail_1795066381641.jpg': hdgiStructureImg,
 };
 
 export const DEFAULT_SITE_SETTINGS: SiteSettings = {
@@ -133,7 +164,7 @@ export const DEFAULT_PRODUCTS: ProductRecord[] = [
       'High-efficiency monocrystalline and bifacial PV modules selected based on roof layout, shading profile, and system voltage architecture.',
     specifications:
       'Output Range: 540Wp to 585Wp · Half-cut cell architecture · IP68 junction box · PID resistant · Anodized aluminum frame',
-    imageUrl: SOLAR_MEDIA.heroRooftop,
+    imageUrl: SOLAR_MEDIA.topconPanels,
     datasheetUrl: '',
     availability: 'Available',
     published: true,
@@ -175,7 +206,7 @@ export const DEFAULT_PRODUCTS: ProductRecord[] = [
       'Custom wind-load engineered terrace structures enabling full rooftop utility below elevated arrays or low-profile shed mounting for industrial roofs.',
     specifications:
       'Hot-dip galvanized steel (80+ micron coating target) · SS304 fasteners · Anchored with chemical/mechanical fasteners & waterproofing',
-    imageUrl: SOLAR_MEDIA.industrialFactory,
+    imageUrl: SOLAR_MEDIA.hdgiStructure,
     datasheetUrl: '',
     availability: 'Available',
     published: true,
@@ -217,7 +248,7 @@ export const DEFAULT_PRODUCTS: ProductRecord[] = [
       'Electron-beam cross-linked DC solar cabling designed for 25-year rooftop UV and thermal exposure alongside armored AC evacuation cables.',
     specifications:
       '1.5kV DC rated · Tinned copper conductor · Flame-retardant halogen-free outer sheath',
-    imageUrl: SOLAR_MEDIA.engineersTeam,
+    imageUrl: SOLAR_MEDIA.aboutEpcTeam,
     datasheetUrl: '',
     availability: 'Available',
     published: true,
@@ -231,7 +262,7 @@ export const DEFAULT_PRODUCTS: ProductRecord[] = [
       'Deep-cycle energy storage banks sized strictly to critical backup load hours for Off-Grid and Hybrid solar installations.',
     specifications:
       'High cycle life · BMS protection (LiFePO4) · Matched charge/discharge curves for hybrid and off-grid inverters',
-    imageUrl: SOLAR_MEDIA.hybridHome,
+    imageUrl: SOLAR_MEDIA.offgridBattery,
     datasheetUrl: '',
     availability: 'On Order',
     published: true,

@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Sun } from 'lucide-react';
+import { LEGACY_MEDIA_MAP } from '../data/defaults';
 
 interface SafeImageProps {
   src?: string;
@@ -14,9 +15,14 @@ export function SafeImage({
   className = 'w-full h-full object-cover',
   loading = 'lazy',
 }: SafeImageProps) {
+  const resolvedSrc = src ? LEGACY_MEDIA_MAP[src] || src : undefined;
   const [failed, setFailed] = useState(false);
 
-  if (!src || failed) {
+  useEffect(() => {
+    setFailed(false);
+  }, [resolvedSrc]);
+
+  if (!resolvedSrc || failed) {
     return (
       <div
         role="img"
@@ -33,7 +39,7 @@ export function SafeImage({
 
   return (
     <img
-      src={src}
+      src={resolvedSrc}
       alt={alt}
       loading={loading}
       referrerPolicy="no-referrer"
