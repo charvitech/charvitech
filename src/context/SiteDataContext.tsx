@@ -252,7 +252,19 @@ export function SiteDataProvider({ children }: { children: React.ReactNode }) {
         setBranches(list);
       }
       if (projectsSnap) {
-        setProjects(projectsSnap.docs.map((d) => d.data() as ProjectRecord));
+        const toMillis = (ts: unknown): number => {
+          if (ts && typeof ts === 'object' && 'toMillis' in ts && typeof (ts as { toMillis: () => number }).toMillis === 'function') {
+            return (ts as { toMillis: () => number }).toMillis();
+          }
+          if (ts && typeof ts === 'object' && 'seconds' in ts && typeof (ts as { seconds: number }).seconds === 'number') {
+            return (ts as { seconds: number }).seconds * 1000;
+          }
+          return 0;
+        };
+        const list = projectsSnap.docs
+          .map((d) => d.data() as ProjectRecord)
+          .sort((a, b) => (toMillis(b.createdAt) || toMillis(b.updatedAt)) - (toMillis(a.createdAt) || toMillis(a.updatedAt)));
+        setProjects(list);
       }
       if (productsSnap && !productsSnap.empty) {
         setProducts(productsSnap.docs.map((d) => d.data() as ProductRecord));

@@ -1,8 +1,9 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import {
   collection,
   deleteDoc,
   doc,
+  getDoc,
   getDocs,
   limit,
   query,
@@ -21,9 +22,14 @@ import {
   X,
   AlertCircle,
   CheckCircle2,
+  Camera,
+  Upload,
+  Globe,
 } from 'lucide-react';
 import { auth, db, OperationType, handleFirestoreError } from '../../lib/firebase';
-import { SiteTrackerRecord } from '../../types/solar';
+import { uploadSiteImage } from '../../lib/mediaUpload';
+import { useSiteData } from '../../context/SiteDataContext';
+import { PropertyCategory, SiteTrackerRecord, SolarSystemType } from '../../types/solar';
 import { AdminConfirmModal } from './AdminConfirmModal';
 
 interface AdminSiteTrackerModuleProps {
@@ -112,6 +118,13 @@ function createEmptyTracker(nextSrNo: number): Omit<SiteTrackerRecord, 'id' | 'c
     party: '',
     vendor: '',
     dailyNotes: '',
+    siteLocation: '',
+    siteTitle: '',
+    siteDescription: '',
+    sitePhotos: [],
+    publishedToProjects: false,
+    featuredOnHome: true,
+    linkedProjectId: '',
   };
 }
 
@@ -197,6 +210,7 @@ export function AdminSiteTrackerModule({
   onRefresh,
   onLog,
 }: AdminSiteTrackerModuleProps) {
+  const { getAdminAuthToken } = useSiteData();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [cashLoanFilter, setCashLoanFilter] = useState('All');
@@ -205,11 +219,14 @@ export function AdminSiteTrackerModule({
   const [modalOpen, setModalOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState<SiteTrackerRecord | null>(null);
   const [form, setForm] = useState(() => createEmptyTracker(1));
+  const [sitePhotoUrlInput, setSitePhotoUrlInput] = useState('');
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [saving, setSaving] = useState(false);
   const [inlineBusyId, setInlineBusyId] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<SiteTrackerRecord | null>(null);
+  const projectPublishRef = useRef<HTMLDivElement | null>(null);
 
   const sortedTrackers = useMemo(
     () => [...trackers].sort((a, b) => (a.srNo || 0) - (b.srNo || 0)),
@@ -293,12 +310,14 @@ export function AdminSiteTrackerModule({
   const openNew = () => {
     setErrorMsg(null);
     setEditingRecord(null);
+    setSitePhotoUrlInput('');
     setForm(createEmptyTracker(nextSrNo));
     setModalOpen(true);
   };
 
-  const openEdit = (rec: SiteTrackerRecord) => {
+  const openEdit = (rec: SiteTrackerRecord, focusPhotos = false) => {
     setErrorMsg(null);
+    setSitePhotoUrlInput('');
     setEditingRecord(rec);
     setForm({
       srNo: rec.srNo,
@@ -336,8 +355,49 @@ export function AdminSiteTrackerModule({
       party: rec.party || '',
       vendor: rec.vendor || '',
       dailyNotes: rec.dailyNotes || '',
+      siteLocation: rec.siteLocation || '',
+      siteTitle: rec.siteTitle || '',
+      siteDescription: rec.siteDescription || '',
+      sitePhotos: rec.sitePhotos || [],
+      publishedToProjects: Boolean(rec.publishedToProjects || focusPhotos),
+      featuredOnHome: rec.featuredOnHome !== false,
+      linkedProjectId: rec.linkedProjectId || '',
     });
     setModalOpen(true);
+    if (focusPhotos) {
+      setTimeout(() => {
+        projectPublishRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 120);
+    }
+  };
+
+  const handleSitePhotoUpload = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    setErrorMsg(null);
+    setUploadingPhoto(true);
+    try {
+      const uploadedUrls: string[] = [];
+      for (const file of Array.from(files).slice(0, 10)) {
+        const url = await uploadSiteImage(file, getAdminAuthToken);
+        uploadedUrls.push(url);
+      }
+      setForm((prev) => {
+        const nextPhotos = [...(prev.sitePhotos || []), ...uploadedUrls].slice(0, 10);
+        const autoTitle =
+          prev.siteTitle?.trim() ||
+          `${prev.plantKw ? `${prev.plantKw} kW ` : ''}${prev.plantType || 'Solar'} Installation${prev.customerName ? ` — ${prev.customerName}` : ''}`;
+        return {
+          ...prev,
+          sitePhotos: nextPhotos,
+          publishedToProjects: true,
+          siteTitle: autoTitle,
+        };
+      });
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : 'Unable to upload site photo.');
+    } finally {
+      setUploadingPhoto(false);
+    }
   };
 
   const describeFirestoreFailure = async (wrapped: unknown, fallback: string) => {
@@ -388,8 +448,15 @@ export function AdminSiteTrackerModule({
       return;
     }
 
-    setSaving(true);
     const id = editingRecord?.id || `site_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+    const shouldPublishProject = Boolean(form.publishedToProjects);
+    const linkedProjectId =
+      shouldPublishProject
+        ? (form.linkedProjectId || `proj_trk_${id}`).slice(0, 128)
+        : (form.linkedProjectId || '').slice(0, 128);
+    const cleanPhotos = (form.sitePhotos || []).filter(Boolean).slice(0, 10);
+
+    setSaving(true);
     const payload = {
       id,
       srNo: Math.min(1000000, Math.max(1, Number(form.srNo) || nextSrNo)),
@@ -427,6 +494,13 @@ export function AdminSiteTrackerModule({
       party: form.party.trim().slice(0, 120),
       vendor: form.vendor.trim().slice(0, 120),
       dailyNotes: form.dailyNotes.trim().slice(0, 2000),
+      siteLocation: (form.siteLocation || '').trim().slice(0, 140),
+      siteTitle: (form.siteTitle || '').trim().slice(0, 180),
+      siteDescription: (form.siteDescription || '').trim().slice(0, 3000),
+      sitePhotos: cleanPhotos,
+      publishedToProjects: shouldPublishProject,
+      featuredOnHome: Boolean(form.featuredOnHome),
+      linkedProjectId,
       updatedAt: serverTimestamp(),
     };
 
@@ -438,15 +512,96 @@ export function AdminSiteTrackerModule({
       if (editingRecord) {
         await updateDoc(doc(db, 'site_trackers', id), payload);
         await onLog('UPDATE_SITE_TRACKER', 'site_trackers', id, `${payload.customerName} (${payload.currentStatus})`);
-        showToast(`Updated ${payload.customerName}`);
       } else {
         await setDoc(doc(db, 'site_trackers', id), {
           ...payload,
           createdAt: serverTimestamp(),
         });
         await onLog('CREATE_SITE_TRACKER', 'site_trackers', id, `SR#${payload.srNo} ${payload.customerName}`);
-        showToast(`Added site #${payload.srNo} — ${payload.customerName}`);
       }
+
+      // Sync to public "Our Projects" collection automatically if enabled (or unpublish if unchecked)
+      if (linkedProjectId) {
+        const numericKw = parseFloat(String(form.plantKw || '').replace(/[^0-9.]/g, ''));
+        const safeCapacity = Number.isFinite(numericKw) && numericKw > 0 ? Math.min(50000, numericKw) : 3;
+        const safeCategory: PropertyCategory =
+          form.categoryPlant === 'Commercial' || form.categoryPlant === 'Industrial'
+            ? form.categoryPlant
+            : 'Residential';
+        const safeSolarType: SolarSystemType =
+          form.plantType === 'Hybrid' || form.plantType === 'Off-Grid'
+            ? form.plantType
+            : 'On-Grid';
+
+        const projectTitle = (
+          payload.siteTitle ||
+          `${safeCapacity} kW ${safeSolarType} Solar Plant — ${payload.customerName}`
+        ).slice(0, 180);
+        const projectLocation = (
+          payload.siteLocation ||
+          'Meerut / Aligarh, Uttar Pradesh'
+        ).slice(0, 140);
+        const cleanSlug =
+          `${projectTitle}-${id.slice(-4)}`
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/(^-|-$)/g, '')
+            .slice(0, 140) || linkedProjectId;
+        const autoDesc = (
+          payload.siteDescription ||
+          payload.dailyNotes ||
+          `${safeCapacity} kW ${safeCategory} ${safeSolarType} rooftop solar plant installed for ${payload.customerName} at ${projectLocation}.${payload.solarPanel ? ` Modules: ${payload.solarPanel}.` : ''}${payload.inverter ? ` Inverter: ${payload.inverter}.` : ''}`
+        ).slice(0, 3000);
+        const afterPhotoUrl =
+          cleanPhotos[0] && cleanPhotos[0].length <= 500 ? cleanPhotos[0] : '';
+
+        const existingProjectSnap = await getDoc(doc(db, 'projects', linkedProjectId)).catch(() => null);
+
+        if (shouldPublishProject) {
+          await setDoc(doc(db, 'projects', linkedProjectId), {
+            id: linkedProjectId,
+            slug: cleanSlug,
+            title: projectTitle,
+            clientName: payload.customerName.slice(0, 140),
+            location: projectLocation,
+            city: (projectLocation.split(',').pop()?.trim() || projectLocation).slice(0, 80),
+            category: safeCategory,
+            solarType: safeSolarType,
+            capacityKw: safeCapacity,
+            installationDate: (payload.installedDate || payload.regDate || '').slice(0, 40),
+            panelBrand: payload.solarPanel.slice(0, 100),
+            inverterBrand: payload.inverter.slice(0, 100),
+            structureDetails: (payload.plant || 'HDGI Mounting Structure').slice(0, 240),
+            description: autoDesc,
+            images: cleanPhotos,
+            beforeImage: '',
+            afterImage: afterPhotoUrl,
+            videoUrl: '',
+            customerTestimonial: '',
+            customerApproved: true,
+            published: true,
+            featured: Boolean(form.featuredOnHome),
+            sourceTrackerId: id,
+            createdAt: existingProjectSnap?.exists()
+              ? existingProjectSnap.data()?.createdAt || serverTimestamp()
+              : serverTimestamp(),
+            updatedAt: serverTimestamp(),
+          });
+          await onLog('AUTO_PUBLISH_PROJECT', 'projects', linkedProjectId, `${projectTitle} (from SR#${payload.srNo})`);
+          showToast(`Saved & automatically published "${projectTitle}" to Our Projects!`);
+        } else if (existingProjectSnap?.exists()) {
+          await updateDoc(doc(db, 'projects', linkedProjectId), {
+            published: false,
+            updatedAt: serverTimestamp(),
+          });
+          showToast(`Updated ${payload.customerName} (unpublished from Our Projects)`);
+        } else {
+          showToast(editingRecord ? `Updated ${payload.customerName}` : `Added site #${payload.srNo} — ${payload.customerName}`);
+        }
+      } else {
+        showToast(editingRecord ? `Updated ${payload.customerName}` : `Added site #${payload.srNo} — ${payload.customerName}`);
+      }
+
       setModalOpen(false);
       await onRefresh();
     } catch (error) {
@@ -851,9 +1006,24 @@ export function AdminSiteTrackerModule({
                       <div className="text-slate-700 mt-0.5">
                         <span className="text-slate-400">Vendor:</span> {rec.vendor || '—'}
                       </div>
+                      {rec.publishedToProjects && (
+                        <div className="mt-1 inline-flex items-center gap-1 text-[10px] font-semibold text-[#15803D] bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded">
+                          <Globe className="w-3 h-3" aria-hidden="true" />
+                          <span>Live in Our Projects</span>
+                        </div>
+                      )}
                     </td>
                     <td className="py-3 px-3 text-right whitespace-nowrap">
-                      <div className="inline-flex items-center gap-2">
+                      <div className="inline-flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => openEdit(rec, true)}
+                          title="Upload site photo & publish to Our Projects"
+                          className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold bg-orange-50 hover:bg-[#F97316] hover:text-white text-[#F97316] border border-orange-200 rounded-lg cursor-pointer transition-colors"
+                        >
+                          <Camera className="w-3.5 h-3.5" aria-hidden="true" />
+                          <span>{rec.publishedToProjects ? 'Project Photo' : 'Add Photo'}</span>
+                        </button>
                         <button
                           type="button"
                           onClick={() => openEdit(rec)}
@@ -1359,6 +1529,158 @@ export function AdminSiteTrackerModule({
                 </div>
               </div>
 
+              {/* Section 5: After-Installation Photos & Auto-Publish to Our Projects */}
+              <div
+                ref={projectPublishRef}
+                className="space-y-4 bg-orange-50/50 border border-orange-200 rounded-xl p-4"
+              >
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-orange-200 pb-2">
+                  <div>
+                    <h4 className="font-display text-sm font-bold text-[#0B1D39] flex items-center gap-1.5">
+                      <Camera className="w-4 h-4 text-[#F97316]" aria-hidden="true" />
+                      <span>5. Site Installation Photos &amp; Auto-Add to Website (&ldquo;Our Projects&rdquo;)</span>
+                    </h4>
+                    <p className="text-[11px] text-slate-600 mt-0.5">
+                      Site lagne ke baad photo upload karein aur kiski site hai / description daalein — Save karte hi automatically website ke Our Projects section me show ho jayegi.
+                    </p>
+                  </div>
+                  <label className="inline-flex items-center gap-2 font-semibold text-[#0B1D39] bg-white px-3 py-1.5 rounded-lg border border-orange-200 cursor-pointer shrink-0">
+                    <input
+                      type="checkbox"
+                      checked={Boolean(form.publishedToProjects)}
+                      onChange={(e) =>
+                        setForm({ ...form, publishedToProjects: e.target.checked })
+                      }
+                    />
+                    <span>Publish to Our Projects</span>
+                  </label>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-semibold mb-1">
+                      Website Project Heading (Kiski Site Hai)
+                    </label>
+                    <input
+                      type="text"
+                      value={form.siteTitle || ''}
+                      onChange={(e) => setForm({ ...form, siteTitle: e.target.value })}
+                      placeholder={
+                        form.customerName
+                          ? `${form.plantKw ? `${form.plantKw} kW ` : ''}${form.plantType} Solar — ${form.customerName}`
+                          : 'e.g., 5 kW Rooftop Solar — Rajesh Sharma Ji'
+                      }
+                      className="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-semibold mb-1">
+                      Site Location / Mohalla &amp; City
+                    </label>
+                    <input
+                      type="text"
+                      value={form.siteLocation || ''}
+                      onChange={(e) => setForm({ ...form, siteLocation: e.target.value })}
+                      placeholder="e.g., Shastri Nagar, Meerut / Siya Khas, Aligarh"
+                      className="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block font-semibold mb-1">
+                    Site Details &amp; Description (Kiski site hai aur kya work hua)
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={form.siteDescription || ''}
+                    onChange={(e) => setForm({ ...form, siteDescription: e.target.value })}
+                    placeholder="Site ke baare me details likhein (e.g., Shri Rajesh Sharma Ji ke ghar par 5 kW elevated HDGI rooftop solar system lagaya gaya with ACDB/DCDB safety & net metering)..."
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block font-semibold">
+                    Site Lagane Ke Baad Ki Photos (up to 10)
+                  </label>
+                  <div className="flex flex-wrap gap-2 items-center">
+                    <label className="inline-flex items-center gap-1.5 px-3.5 py-2 font-semibold bg-[#F97316] hover:bg-[#EA580C] text-white rounded-lg cursor-pointer">
+                      <Upload className="w-3.5 h-3.5" aria-hidden="true" />
+                      <span>{uploadingPhoto ? 'Uploading...' : 'Upload Site Photo(s)'}</span>
+                      <input
+                        type="file"
+                        multiple
+                        accept="image/jpeg,image/png,image/webp"
+                        className="hidden"
+                        onChange={(e) => {
+                          handleSitePhotoUpload(e.target.files);
+                          e.target.value = '';
+                        }}
+                      />
+                    </label>
+                    <input
+                      type="text"
+                      value={sitePhotoUrlInput}
+                      onChange={(e) => setSitePhotoUrlInput(e.target.value)}
+                      placeholder="Or paste photo URL..."
+                      className="flex-1 min-w-[180px] px-3 py-2 border border-slate-300 rounded-lg bg-white"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (sitePhotoUrlInput.trim()) {
+                          setForm((prev) => ({
+                            ...prev,
+                            sitePhotos: [...(prev.sitePhotos || []), sitePhotoUrlInput.trim()].slice(0, 10),
+                            publishedToProjects: true,
+                          }));
+                          setSitePhotoUrlInput('');
+                        }
+                      }}
+                      className="px-3 py-2 font-semibold bg-[#0B1D39] text-white rounded-lg cursor-pointer"
+                    >
+                      Add URL
+                    </button>
+                  </div>
+
+                  {(form.sitePhotos || []).length > 0 && (
+                    <div className="flex flex-wrap gap-2.5 pt-1">
+                      {(form.sitePhotos || []).map((url, idx) => (
+                        <div
+                          key={idx}
+                          className="relative w-24 h-20 rounded-lg overflow-hidden border border-slate-300 bg-white"
+                        >
+                          <img src={url} alt={`Site photo ${idx + 1}`} className="w-full h-full object-cover" />
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setForm((prev) => ({
+                                ...prev,
+                                sitePhotos: (prev.sitePhotos || []).filter((_, i) => i !== idx),
+                              }))
+                            }
+                            aria-label="Remove site photo"
+                            className="absolute top-0.5 right-0.5 bg-black/75 text-white text-[10px] px-1.5 py-0.5 rounded cursor-pointer"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <label className="inline-flex items-center gap-2 font-medium text-[#0B1D39] cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={form.featuredOnHome !== false}
+                    onChange={(e) => setForm({ ...form, featuredOnHome: e.target.checked })}
+                  />
+                  <span>Homepage ke &ldquo;Charvi Solar Projects&rdquo; section me bhi dikhayein</span>
+                </label>
+              </div>
+
               <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200">
                 <button
                   type="button"
@@ -1369,10 +1691,16 @@ export function AdminSiteTrackerModule({
                 </button>
                 <button
                   type="submit"
-                  disabled={saving}
+                  disabled={saving || uploadingPhoto}
                   className="px-5 py-2.5 font-semibold bg-[#0B1D39] hover:bg-[#132B52] disabled:opacity-60 text-white rounded-lg cursor-pointer"
                 >
-                  {saving ? 'Saving Site Record...' : editingRecord ? 'Update Client Site' : 'Save New Site'}
+                  {saving
+                    ? 'Saving & Syncing...'
+                    : form.publishedToProjects
+                    ? 'Save Site & Publish to Our Projects'
+                    : editingRecord
+                    ? 'Update Client Site'
+                    : 'Save New Site'}
                 </button>
               </div>
             </form>

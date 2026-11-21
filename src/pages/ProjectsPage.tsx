@@ -191,6 +191,12 @@ export function ProjectsPage() {
                   System Specifications
                 </h3>
                 <dl className="divide-y divide-slate-200 text-sm">
+                  {project.clientName && (
+                    <div className="py-2.5 flex justify-between gap-2">
+                      <dt className="text-slate-500">Client / Site</dt>
+                      <dd className="font-semibold text-[#0B1D39] text-right">{project.clientName}</dd>
+                    </div>
+                  )}
                   <div className="py-2.5 flex justify-between gap-2">
                     <dt className="text-slate-500">Capacity</dt>
                     <dd className="font-mono-tabular font-semibold text-[#0B1D39]">{project.capacityKw} kW</dd>
@@ -267,6 +273,7 @@ export function ProjectsPage() {
     const matchesSearch =
       !q ||
       p.title.toLowerCase().includes(q) ||
+      (p.clientName || '').toLowerCase().includes(q) ||
       p.location.toLowerCase().includes(q) ||
       p.panelBrand.toLowerCase().includes(q);
     return matchesFilter && matchesSearch;
@@ -363,7 +370,10 @@ export function ProjectsPage() {
                       <h2 className="font-display text-lg font-bold text-[#0B1D39] mt-1">
                         {proj.title}
                       </h2>
-                      <p className="text-xs text-slate-500 mt-1">{proj.location}</p>
+                      <p className="text-xs text-slate-500 mt-1">
+                        {proj.clientName ? `${proj.clientName} · ` : ''}
+                        {proj.location}
+                      </p>
                       <p className="text-sm text-slate-600 mt-2 line-clamp-3">
                         {proj.description}
                       </p>

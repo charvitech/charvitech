@@ -78,15 +78,16 @@ service cloud.firestore {
         'capacityKw', 'published', 'featured', 'createdAt', 'updatedAt'
       ]) &&
       data.keys().hasOnly([
-        'id', 'slug', 'title', 'location', 'city', 'category', 'solarType',
+        'id', 'slug', 'title', 'clientName', 'location', 'city', 'category', 'solarType',
         'capacityKw', 'installationDate', 'panelBrand', 'inverterBrand',
         'structureDetails', 'description', 'images', 'beforeImage', 'afterImage',
         'videoUrl', 'customerTestimonial', 'customerApproved',
-        'published', 'featured', 'createdAt', 'updatedAt'
+        'published', 'featured', 'sourceTrackerId', 'createdAt', 'updatedAt'
       ]) &&
       isValidId(data.id) &&
       isValidString(data.slug, 2, 140) &&
       isValidString(data.title, 3, 180) &&
+      (!('clientName' in data) || isValidString(data.clientName, 0, 140)) &&
       isValidString(data.location, 2, 140) &&
       (!('city' in data) || isValidString(data.city, 0, 80)) &&
       data.category in ['Residential', 'Commercial', 'Industrial'] &&
@@ -105,6 +106,7 @@ service cloud.firestore {
       (!('customerApproved' in data) || data.customerApproved is bool) &&
       data.published is bool &&
       data.featured is bool &&
+      (!('sourceTrackerId' in data) || isValidString(data.sourceTrackerId, 0, 128)) &&
       data.createdAt is timestamp &&
       data.updatedAt is timestamp;
     }
@@ -240,11 +242,13 @@ service cloud.firestore {
         'id', 'srNo', 'regSession', 'regMonth', 'regDate', 'customerName', 'mobileNo',
         'cashLoan', 'loanStatus', 'currentStatus', 'applicationNo', 'consumerNo',
         'registration', 'agreement', 'installedDate', 'siteInstalled', 'dcrCreate',
-        'netmetering', 'subsidyApply', 'subsidyDisbursal'
+        'netmetering', 'subsidyApply', 'subsidyDisbursal',
+        'siteLocation', 'siteTitle', 'siteDescription', 'sitePhotos'
       ]).hasOnly([
         'plant', 'reference', 'plantType', 'solarPanel', 'inverter', 'battery',
         'plantKw', 'categoryPlant', 'pendingPay', 'firstPayAmt', 'firstPayDate',
         'secondPayAmt', 'secondPayDate', 'party', 'vendor', 'dailyNotes',
+        'publishedToProjects', 'featuredOnHome', 'linkedProjectId',
         'createdAt', 'updatedAt'
       ]) &&
       isValidId(data.id) &&
@@ -253,6 +257,13 @@ service cloud.firestore {
       isValidString(data.mobileNo, 1, 30) &&
       isValidString(data.currentStatus, 1, 160) &&
       (!('dailyNotes' in data) || isValidString(data.dailyNotes, 0, 2000)) &&
+      (!('siteLocation' in data) || isValidString(data.siteLocation, 0, 140)) &&
+      (!('siteTitle' in data) || isValidString(data.siteTitle, 0, 180)) &&
+      (!('siteDescription' in data) || isValidString(data.siteDescription, 0, 3000)) &&
+      (!('sitePhotos' in data) || isValidStringList(data.sitePhotos, 10)) &&
+      (!('publishedToProjects' in data) || data.publishedToProjects is bool) &&
+      (!('featuredOnHome' in data) || data.featuredOnHome is bool) &&
+      (!('linkedProjectId' in data) || isValidString(data.linkedProjectId, 0, 128)) &&
       data.createdAt is timestamp &&
       data.updatedAt is timestamp;
     }

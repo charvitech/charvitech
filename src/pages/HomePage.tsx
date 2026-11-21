@@ -518,6 +518,11 @@ export function HomePage() {
                       <h3 className="font-display text-lg font-bold text-[#0B1D39] mt-1">
                         {proj.title}
                       </h3>
+                      {proj.clientName && (
+                        <p className="text-xs font-medium text-[#0B1D39]/80 mt-0.5">
+                          Site: {proj.clientName}
+                        </p>
+                      )}
                       <p className="text-sm text-slate-600 mt-2 line-clamp-3">
                         {proj.description}
                       </p>

@@ -82,6 +82,7 @@ export interface ProjectRecord {
   id: string;
   slug: string;
   title: string;
+  clientName?: string;
   location: string;
   city: string;
   category: PropertyCategory;
@@ -100,6 +101,7 @@ export interface ProjectRecord {
   customerApproved: boolean;
   published: boolean;
   featured: boolean;
+  sourceTrackerId?: string;
   createdAt?: unknown;
   updatedAt?: unknown;
 }
@@ -246,6 +248,13 @@ export interface SiteTrackerRecord {
   party: string;
   vendor: string;
   dailyNotes: string;
+  siteLocation?: string;
+  siteTitle?: string;
+  siteDescription?: string;
+  sitePhotos?: string[];
+  publishedToProjects?: boolean;
+  featuredOnHome?: boolean;
+  linkedProjectId?: string;
   createdAt?: unknown;
   updatedAt?: unknown;
 }
